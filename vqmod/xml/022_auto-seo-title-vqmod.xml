@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modification>
+	<id>Automatic SEO Title</id>
+	<version>2.1.3</version>
+	<vqmver>2.3.0</vqmver>
+	<author>Fabius - http://opencartit.altervista.org</author>
+	<file name="catalog/controller/common/home.php">
+		<operation>
+			<search position="replace"><![CDATA[$this->document->setTitle($this->config->get('config_title'));]]></search>
+			<add><![CDATA[
+			$ast_hval = array("", $this->config->get('config_title'), $this->config->get('ast_custom'), $this->config->get('ast_custom1'), $this->config->get('ast_custom2'));
+			$ast_horder = explode(",",$this->config->get('ast_horder'));
+			$ast_hsep = explode(",",$this->config->get('ast_hsep'));
+			$newTitle = $ast_hval[$ast_horder[0]];
+			for($i=1;$i<3;$i++) {
+				$newTitle .= ($ast_hsep[$i-1].$ast_hval[$ast_horder[$i]]);
+			}
+			$this->document->setTitle($newTitle);
+			]]></add>
+		</operation>
+	</file>
+	<file name="catalog/controller/product/category.php">
+		<operation>
+			<search position="replace"><![CDATA[$this->document->setTitle($category_info['name']);]]></search>
+			<add><![CDATA[
+			$ast_sval = array("", $this->config->get('config_title'), $category_info['name'], $this->config->get('ast_custom'), $this->config->get('ast_custom1'), $this->config->get('ast_custom2'));
+			$ast_sorder = explode(",",$this->config->get('ast_sorder'));
+			$ast_ssep = explode(",",$this->config->get('ast_ssep'));
+			$newTitle = $ast_sval[$ast_sorder[0]];
+			for($i=1;$i<3;$i++) {
+				$newTitle .= ($ast_ssep[$i-1].$ast_sval[$ast_sorder[$i]]);
+			}
+			$this->document->setTitle($newTitle);]]></add>
+		</operation>
+	</file>
+	<file name="catalog/controller/product/product.php">
+		<operation>
+			<search position="before"><![CDATA[getProductDiscounts]]></search>
+			<add><![CDATA[
+			$catName = isset($category_info) ? (array_key_exists('name', $category_info) ? $category_info['name'] : "") : "";
+			$titlePrice = $this->data['special'] ? $this->data['special'] : ($this->data['price'] ? $this->data['price'] : ($this->data['tax'] ? $this->data['tax'] : ""));
+			$ast_val = array("", $this->config->get('config_title'), $product_info['manufacturer'], $titlePrice, $this->language->get('text_special'), $product_info['name'], $catName, $this->config->get('ast_custom'), $this->config->get('ast_custom1'), $this->config->get('ast_custom2'), $product_info['model'],$product_info['sku'],$product_info['upc'],$product_info['ean'],$product_info['jan'],$product_info['isbn'],$product_info['mpn']);
+			$ast_order = explode(",",$this->config->get('ast_order'));
+			$ast_sep = explode(",",$this->config->get('ast_sep'));
+			$newTitle = $ast_val[$ast_order[0]];
+			for($i=1;$i<8;$i++) {
+				if($ast_order[$i]=='6' && $catName=="") {
+					 //do nothing
+				} else {
+					if($newTitle=="") $ast_sep[$i-1] = "";
+					$val = ($ast_order[$i] != '4') ? $ast_sep[$i-1].$ast_val[$ast_order[$i]] : ($this->data['special'] ? $ast_sep[$i-1].$ast_val[$ast_order[$i]] : "");
+					$newTitle .= $val;
+				}
+			}
+			$this->document->setTitle($newTitle);]]></add>
+		</operation>
+	</file>
+	<file path="catalog/controller/information/" name="contact.php,sitemap.php">
+		<operation>
+			<search position="replace"><![CDATA[$this->document->setTitle($this->language->get('heading_title'));]]></search>
+			<add><![CDATA[
+			$ast_sval = array("", $this->config->get('config_title'), $this->language->get('heading_title'), $this->config->get('ast_custom'),$this->config->get('ast_custom1'), $this->config->get('ast_custom2'));
+			$ast_sorder = explode(",",$this->config->get('ast_sorder'));
+			$ast_ssep = explode(",",$this->config->get('ast_ssep'));
+			$newTitle = $ast_sval[$ast_sorder[0]];
+			for($i=1;$i<3;$i++) {
+				$newTitle .= ($ast_ssep[$i-1].$ast_sval[$ast_sorder[$i]]);
+			}
+			$this->document->setTitle($newTitle);]]></add>
+		</operation>
+	</file>
+	<file name="catalog/controller/information/information.php">
+		<operation>
+			<search position="replace"><![CDATA[$this->document->setTitle($information_info['title']);]]></search>
+			<add><![CDATA[
+			$ast_sval = array("", $this->config->get('config_title'), $information_info['title'], $this->config->get('ast_custom'),$this->config->get('ast_custom1'), $this->config->get('ast_custom2'));
+			$ast_sorder = explode(",",$this->config->get('ast_sorder'));
+			$ast_ssep = explode(",",$this->config->get('ast_ssep'));
+			$newTitle = $ast_sval[$ast_sorder[0]];
+			for($i=1;$i<3;$i++) {
+				$newTitle .= ($ast_ssep[$i-1].$ast_sval[$ast_sorder[$i]]);
+			}
+			$this->document->setTitle($newTitle);]]></add>
+		</operation>
+	</file>
+	<file path="catalog/controller/account/" name="wishlist.php,voucher.php,transaction.php,success.php,reward.php,return.php,register.php,account.php,address.php,download.php,edit.php,forgotten.php,login.php,logout.php,newsletter.php,order.php,password.php">
+		<operation error="log">
+			<search position="replace"><![CDATA[$this->document->setTitle($this->language->get('heading_title'));]]></search>
+			<add><![CDATA[
+			$ast_sval = array("", $this->config->get('config_title'), $this->language->get('heading_title'), $this->config->get('ast_custom'), $this->config->get('ast_custom1'), $this->config->get('ast_custom2'));
+			$ast_sorder = explode(",",$this->config->get('ast_sorder'));
+			$ast_ssep = explode(",",$this->config->get('ast_ssep'));
+			$newTitle = $ast_sval[$ast_sorder[0]];
+			for($i=1;$i<3;$i++) {
+				$newTitle .= ($ast_ssep[$i-1].$ast_sval[$ast_sorder[$i]]);
+			}
+			$this->document->setTitle($newTitle);]]></add>
+		</operation>
+	</file>
+	<file path="catalog/controller/affiliate/" name="account.php,edit.php,forgotten.php,login.php,logout.php,password.php,payment.php,register.php,success.php,tracking.php,transaction.php">
+		<operation error="log">
+			<search position="replace"><![CDATA[$this->document->setTitle($this->language->get('heading_title'));]]></search>
+			<add><![CDATA[
+			$ast_sval = array("", $this->config->get('config_title'), $this->language->get('heading_title'), $this->config->get('ast_custom'), $this->config->get('ast_custom1'), $this->config->get('ast_custom2'));
+			$ast_sorder = explode(",",$this->config->get('ast_sorder'));
+			$ast_ssep = explode(",",$this->config->get('ast_ssep'));
+			$newTitle = $ast_sval[$ast_sorder[0]];
+			for($i=1;$i<3;$i++) {
+				$newTitle .= ($ast_ssep[$i-1].$ast_sval[$ast_sorder[$i]]);
+			}
+			$this->document->setTitle($newTitle);]]></add>
+		</operation>
+	</file>
+	<file path="catalog/controller/checkout/" name="cart.php,checkout.php,success.php">
+		<operation error="log">
+			<search position="replace"><![CDATA[$this->document->setTitle($this->language->get('heading_title'));]]></search>
+			<add><![CDATA[
+			$ast_sval = array("", $this->config->get('config_title'), $this->language->get('heading_title'), $this->config->get('ast_custom'), $this->config->get('ast_custom1'), $this->config->get('ast_custom2'));
+			$ast_sorder = explode(",",$this->config->get('ast_sorder'));
+			$ast_ssep = explode(",",$this->config->get('ast_ssep'));
+			$newTitle = $ast_sval[$ast_sorder[0]];
+			for($i=1;$i<3;$i++) {
+				$newTitle .= ($ast_ssep[$i-1].$ast_sval[$ast_sorder[$i]]);
+			}
+			$this->document->setTitle($newTitle);]]></add>
+		</operation>
+	</file>
+	<file name="catalog/controller/common/maintenance.php">
+		<operation error="log">
+			<search position="replace"><![CDATA[$this->document->setTitle($this->language->get('heading_title'));]]></search>
+			<add><![CDATA[
+			$ast_sval = array("", $this->config->get('config_title'), $this->language->get('heading_title'), $this->config->get('ast_custom'), $this->config->get('ast_custom1'), $this->config->get('ast_custom2'));
+			$ast_sorder = explode(",",$this->config->get('ast_sorder'));
+			$ast_ssep = explode(",",$this->config->get('ast_ssep'));
+			$newTitle = $ast_sval[$ast_sorder[0]];
+			for($i=1;$i<3;$i++) {
+				$newTitle .= ($ast_ssep[$i-1].$ast_sval[$ast_sorder[$i]]);
+			}
+			$this->document->setTitle($newTitle);]]></add>
+		</operation>
+	</file>
+	<file name="catalog/controller/error/not_found.php">
+		<operation error="log">
+			<search position="replace"><![CDATA[$this->document->setTitle($this->language->get('heading_title'));]]></search>
+			<add><![CDATA[
+			$ast_sval = array("", $this->config->get('config_title'), $this->language->get('heading_title'), $this->config->get('ast_custom'), $this->config->get('ast_custom1'), $this->config->get('ast_custom2'));
+			$ast_sorder = explode(",",$this->config->get('ast_sorder'));
+			$ast_ssep = explode(",",$this->config->get('ast_ssep'));
+			$newTitle = $ast_sval[$ast_sorder[0]];
+			for($i=1;$i<3;$i++) {
+				$newTitle .= ($ast_ssep[$i-1].$ast_sval[$ast_sorder[$i]]);
+			}
+			$this->document->setTitle($newTitle);]]></add>
+		</operation>
+	</file>
+	<file path="catalog/controller/product/" name="compare.php,manufacturer.php,search.php,special.php">
+		<operation error="log">
+			<search position="replace"><![CDATA[$this->document->setTitle($this->language->get('heading_title'));]]></search>
+			<add><![CDATA[
+			$ast_sval = array("", $this->config->get('config_title'), $this->language->get('heading_title'), $this->config->get('ast_custom'), $this->config->get('ast_custom1'), $this->config->get('ast_custom2'));
+			$ast_sorder = explode(",",$this->config->get('ast_sorder'));
+			$ast_ssep = explode(",",$this->config->get('ast_ssep'));
+			$newTitle = $ast_sval[$ast_sorder[0]];
+			for($i=1;$i<3;$i++) {
+				$newTitle .= ($ast_ssep[$i-1].$ast_sval[$ast_sorder[$i]]);
+			}
+			$this->document->setTitle($newTitle);]]></add>
+		</operation>
+	</file>
+	<file name="catalog/controller/product/search.php">
+	    <operation error="log">
+			<search position="replace"><![CDATA[$this->document->setTitle($this->language->get('heading_title') .  ' - ' . $this->request->get['search']);]]></search>
+			<add><![CDATA[
+			$ast_sval = array("", $this->config->get('config_title'), $this->language->get('heading_title'), $this->config->get('ast_custom'), $this->config->get('ast_custom1'), $this->config->get('ast_custom2'));
+			$ast_sorder = explode(",",$this->config->get('ast_sorder'));
+			$ast_ssep = explode(",",$this->config->get('ast_ssep'));
+			$newTitle = $ast_sval[$ast_sorder[0]];
+			for($i=1;$i<3;$i++) {
+				if($ast_sorder[$i]=='2') {
+					$newTitle .= ($ast_ssep[$i-1].$ast_sval[$ast_sorder[$i]].": ".$this->request->get['search']);
+				} else {
+					$newTitle .= ($ast_ssep[$i-1].$ast_sval[$ast_sorder[$i]]);
+				}
+			}
+			$this->document->setTitle($newTitle);]]></add>
+		</operation>
+	</file>
+	<file name="catalog/language/*/product/product.php">
+		<operation error="log">
+			<search position="before"><![CDATA[?>]]></search>
+			<add><![CDATA[
+			$_['text_special'] = 'SPECIAL!';]]></add>
+		</operation>
+	</file>
+	<file name="catalog/language/english/product/product.php">
+		<operation error="skip">
+			<search position="before"><![CDATA[?>]]></search>
+			<add><![CDATA[
+			$_['text_special'] = 'ON SALE!';]]></add>
+		</operation>
+	</file>
+	<file name="catalog/language/italian/product/product.php" error="skip">
+		<operation error="skip">
+			<search position="before"><![CDATA[?>]]></search>
+			<add><![CDATA[
+			$_['text_special'] = 'IN OFFERTA!';]]></add>
+		</operation>
+	</file>
+</modification>

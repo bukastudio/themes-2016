@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modification>
+        <id>Ajax Quick Invoice Generate</id>
+        <version>1.5.x</version>
+        <vqmver>1.0.5</vqmver>
+        <author>graham@g-white.co.uk</author>
+
+		<file name="admin/language/english/common/home.php">
+				<operation>
+                        <search position="after"><![CDATA[
+                        $_['text_customer']                 = 'Total Customers';
+                        ]]></search>
+
+                        <add><![CDATA[
+						$_['text_generate']		='Generate';
+						]]></add>
+                </operation>
+        </file>
+		<file name="admin/language/english/english.php">
+				<operation>
+                        <search position="before"><![CDATA[
+                        $_['button_filter']                 = 'Filter';
+                        ]]></search>
+
+                        <add><![CDATA[
+						$_['column_invoice_no']		='Invoice No.';
+						$_['button_generate_invoice'] = 'Generate Invoice No.';
+						]]></add>
+                </operation>
+        </file>
+
+		<file name="admin/model/sale/order.php">
+				<operation>
+                        <search position="replace"><![CDATA[
+                        $sql = "SELECT o.order_id, CONCAT(o.firstname, ' ', o.lastname) AS customer, (SELECT os.name FROM " . DB_PREFIX . "order_status os WHERE os.order_status_id = o.order_status_id AND os.language_id = '" . (int)$this->config->get('config_language_id') . "') AS status, o.total, o.currency_code, o.currency_value, o.date_added, o.date_modified FROM `" . DB_PREFIX . "order` o";
+                        ]]></search>
+
+                        <add><![CDATA[
+						$sql = "SELECT o.invoice_no, o.invoice_prefix, o.order_id, CONCAT(o.firstname, ' ', o.lastname) AS customer, (SELECT os.name FROM " . DB_PREFIX . "order_status os WHERE os.order_status_id = o.order_status_id AND os.language_id = '" . (int)$this->config->get('config_language_id') . "') AS status, o.total, o.currency_code, o.currency_value, o.date_added, o.date_modified FROM `" . DB_PREFIX . "order` o";
+						]]></add>
+                </operation>
+        </file>
+        <file name="admin/controller/sale/order.php">
+				 <operation>
+                        <search position="before"><![CDATA[
+                        $this->data['button_filter'] = $this->language->get('button_filter');
+                        ]]></search>
+
+                        <add><![CDATA[
+						$this->data['column_invoice_no'] = $this->language->get('column_invoice_no');
+						$this->data['text_generate'] = $this->language->get('text_generate');
+						$this->data['button_generate_invoice'] = $this->language->get('button_generate_invoice');
+						]]></add>
+                </operation>
+				<operation>
+                        <search position="before"><![CDATA[
+                        if (strtotime($result['date_added']) > strtotime('-' . (int)$this->config->get('config_order_edit') . ' day')) {
+                        ]]></search>
+
+                        <add><![CDATA[
+						if ($result['invoice_no']) {
+							$invoice_no = $result['invoice_prefix'] . $result['invoice_no'];
+						} else {
+							$invoice_no = '';
+						}
+						]]></add>
+                </operation>
+				<operation>
+                        <search position="after"><![CDATA[
+                        'order_id'      => $result['order_id'],
+                        ]]></search>
+
+                        <add><![CDATA[
+						'invoice_no'      => $invoice_no,
+						]]></add>
+                </operation>
+
+        </file>
+
+		<file name="admin/view/template/sale/order_list.tpl">
+				<operation>
+                        <search position="replace"><![CDATA[
+                        <div class="buttons">
+                        ]]></search>
+                        <add trim="true"><![CDATA[
+						<div class="buttons"><a id="invoice-generate-all" class="button"><?php echo $button_generate_invoice; ?></a>
+						]]></add>
+                </operation>
+                <operation>
+                        <search position="before"><![CDATA[
+                        <td align="right"><input type="text" name="filter_total" value="<?php echo $filter_total; ?>" size="4" style="text-align: right;" /></td>
+                        ]]></search>
+                        <add><![CDATA[
+						<td align="right"></td>
+						]]></add>
+                </operation>
+				<operation>
+                        <search position="before"><![CDATA[
+                        <td class="right"><?php if ($sort == 'o.total') { ?>
+                        ]]></search>
+                        <add><![CDATA[
+						<td class="left"><?php echo $column_invoice_no; ?></td>
+						]]></add>
+                </operation>
+				<operation>
+                        <search position="before"><![CDATA[
+                        <td class="right"><?php echo $order['total']; ?></td>
+                        ]]></search>
+                        <add><![CDATA[
+						<td class="left"><?php if ($order['invoice_no']) { ?>
+						  <?php echo $order['invoice_no']; ?>
+						  <?php } else { ?>
+						  <a class="button invoice-generate"><span id="<?php echo $order['order_id']; ?>"><?php echo $text_generate; ?></span></a>
+						  <?php } ?>
+						</td>
+						]]></add>
+                </operation>
+				<operation>
+                        <search position="after"><![CDATA[
+                        <form action="" method="post" enctype="multipart/form-data" id="form">
+                        ]]></search>
+
+                        <add><![CDATA[
+						<script type="text/javascript">
+
+							$('.invoice-generate').live('click', function(event) {
+								$.ajax({
+									url: 'index.php?route=sale/order/createinvoiceno&token=<?php echo $token; ?>&order_id='+event.target.id,
+									dataType: 'json',
+									beforeSend: function() {
+										$('.invoice-generate #'+event.target.id).parent().after('<img src="view/image/loading.gif" class="loading" style="padding-left: 5px;" />');
+									},
+									complete: function() {
+										$('.loading').remove();
+									},
+									success: function(json) {
+										$('.success, .warning').remove();
+
+										if (json['error']) {
+											$('.box').prepend('<div class="warning" style="display: none;">' + json['error'] + '</div>');
+
+											$('.warning').fadeIn('slow');
+										}
+
+										if (json.invoice_no) {
+											$('.invoice-generate #'+event.target.id).parent().after('<span>'+json['invoice_no']+'</span>');
+											$('.invoice-generate #'+event.target.id).parent().remove();
+										}
+									}
+								});
+							});
+						</script>
+						]]></add>
+                </operation>
+				<operation>
+                        <search position="before"><![CDATA[
+                        <?php echo $footer; ?>
+                        ]]></search>
+
+                        <add><![CDATA[
+						<script type="text/javascript">
+
+							$('#invoice-generate-all').live('click', function(event) {
+								$('.list > tbody input:checked').each(function()
+								{
+									if($('#'+$(this).val()).length != 0)
+									{
+										var $orderId = $(this).val();
+										var $element = $(this);
+										$.ajax({
+											url: 'index.php?route=sale/order/createinvoiceno&token=<?php echo $token; ?>&order_id='+$orderId,
+											dataType: 'json',
+											beforeSend: function() {
+												$('.invoice-generate #'+$orderId).parent().after('<img src="view/image/loading.gif" class="loading" style="padding-left: 5px;" />');
+											},
+											complete: function() {
+												$('.loading').remove();
+											},
+											success: function(json) {
+												$('.success, .warning').fadeOut('slow').remove();
+
+												if (json['error']) {
+													$('.box').prepend('<div class="warning" style="display: none;">' + json['error'] + '</div>');
+
+													$('.warning').fadeIn('slow');
+												}
+
+												if (json.invoice_no) {
+													$('.invoice-generate #'+$orderId).parent().after('<span>'+json['invoice_no']+'</span>');
+													$('.invoice-generate #'+$orderId).parent().remove();
+												}
+												//$element.attr('checked', false);
+											}
+										});
+									}
+								});
+
+							});
+						</script>
+						]]></add>
+                </operation>
+        </file>
+		<file name="admin/view/template/common/home.tpl">
+				<operation>
+                        <search position="before"><![CDATA[
+                        <script type="text/javascript" src="view/javascript/jquery/flot/jquery.flot.js"></script>
+                        ]]></search>
+
+                        <add><![CDATA[
+						<script type="text/javascript">
+
+						$('.invoice-generate').live('click', function(event) {
+								$.ajax({
+									url: 'index.php?route=sale/order/createinvoiceno&token=<?php echo $token; ?>&order_id='+event.target.id,
+									dataType: 'json',
+									beforeSend: function() {
+										$('.invoice-generate #'+event.target.id).parent().after('<img src="view/image/loading.gif" class="loading" style="padding-left: 5px;" />');
+									},
+									complete: function() {
+										$('.loading').remove();
+									},
+									success: function(json) {
+										$('.success, .warning').remove();
+
+										if (json['error']) {
+											$('.latest').prepend('<div class="warning" style="display: none;">' + json['error'] + '</div>');
+
+											$('.warning').fadeIn('slow');
+										}
+
+										if (json.invoice_no) {
+											$('.invoice-generate #'+event.target.id).parent().after('<span>'+json['invoice_no']+'</span>');
+											$('.invoice-generate #'+event.target.id).parent().remove();
+										}
+									}
+								});
+							});
+
+						</script>
+						]]></add>
+                </operation>
+				<operation>
+                        <search position="after"><![CDATA[
+                        <td class="left"><?php echo $column_status; ?></td>
+                        ]]></search>
+                        <add><![CDATA[
+						<td class="left"><?php echo $column_invoice_no; ?></td>
+						]]></add>
+                </operation>
+				<operation>
+                        <search position="after"><![CDATA[
+                        <td class="left"><?php echo $order['status']; ?></td>
+                        ]]></search>
+                        <add><![CDATA[
+						<td class="left"><?php if ($order['invoice_no']) { ?>
+						  <?php echo $order['invoice_no']; ?>
+						  <?php } else { ?>
+						  <a class="button invoice-generate"><span id="<?php echo $order['order_id']; ?>"><?php echo $text_generate; ?></span></a>
+						  <?php } ?>
+						</td>
+						]]></add>
+                </operation>
+
+        </file>
+		<file name="admin/controller/common/home.php">
+				<operation>
+                        <search position="after"><![CDATA[
+                        $this->data['text_no_results'] = $this->language->get('text_no_results');
+                        ]]></search>
+
+                        <add><![CDATA[
+						$this->data['column_invoice_no'] = $this->language->get('column_invoice_no');
+						$this->data['text_generate'] = $this->language->get('text_generate');
+						]]></add>
+                </operation>
+				<operation>
+                        <search position="before"><![CDATA[
+                        $this->data['orders'][] = array(
+                        ]]></search>
+
+                        <add><![CDATA[
+						if ($result['invoice_no']) {
+							$invoice_no = $result['invoice_prefix'] . $result['invoice_no'];
+						} else {
+							$invoice_no = '';
+						}
+						]]></add>
+                </operation>
+				<operation>
+                        <search position="after"><![CDATA[
+                        'order_id'   => $result['order_id'],
+                        ]]></search>
+
+                        <add><![CDATA[
+						'invoice_no'      => $invoice_no,
+						]]></add>
+                </operation>
+
+        </file>
+</modification>

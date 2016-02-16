@@ -1,0 +1,187 @@
+<modification>
+  <id>Additional menu</id>
+  <version>1.0</version>
+  <vqmver>2.1.5</vqmver>
+  <author>Bukatoko.com</author>
+
+  <!-- /LANGUAGE -->
+  <file name="admin/language/english/setting/setting.php">
+    <operation>
+      <search position="after"><![CDATA[
+        $_['text_smtp']                    = 'SMTP';
+      ]]></search>
+      <add><![CDATA[
+        $_['entry_header_home']          = 'Home';
+        $_['entry_header_new_arrivals']  = 'New Arrivals';
+        $_['entry_header_shop_by_brand'] = 'Shop by Brands';
+        $_['entry_header_special']       = 'Sale';
+        $_['entry_header_blog']          = 'Blog';
+
+        $_['entry_footer_shop_by_brand'] = 'Shop by Brands';
+        $_['entry_footer_gift_voucher']  = 'Gift Voucher';
+        $_['entry_footer_affiliate']     = 'Affiliate Program';
+        $_['entry_footer_special']       = 'Sale Items';
+        $_['entry_footer_return']        = 'Product Return';
+        $_['entry_footer_testimonial']   = 'Testimonial';
+        $_['entry_footer_blog']          = 'Blog';
+      ]]></add>
+    </operation>
+  </file>
+
+  <file name="admin/language/english/english.php">
+
+    <!-- /Tab Menu -->
+    <operation>
+      <search position="after"><![CDATA[
+        $_['tab_price']                     = 'Price';
+      ]]></search>
+      <add><![CDATA[
+        $_['tab_themes']                    = 'Themes';
+      ]]></add>
+    </operation>
+
+    <!-- /Tab Content -->
+  </file>
+
+  <!-- /CONTROLLER -->
+  <file name="admin/controller/setting/setting.php">
+
+    <!-- /Tab Menu -->
+    <operation>
+      <search position="after"><![CDATA[
+        $this->data['tab_server'] = $this->language->get('tab_server');
+      ]]></search>
+      <add><![CDATA[
+        $this->data['tab_themes'] = $this->language->get('tab_themes');
+        $this->data['entry_header_home'] = $this->language->get('entry_header_home');
+        $this->data['entry_header_new_arrivals'] = $this->language->get('entry_header_new_arrivals');
+        $this->data['entry_header_shop_by_brand'] = $this->language->get('entry_header_shop_by_brand');
+        $this->data['entry_header_special'] = $this->language->get('entry_header_special');
+        $this->data['entry_header_blog'] = $this->language->get('entry_header_blog');
+
+        $this->data['entry_footer_shop_by_brand'] = $this->language->get('entry_footer_shop_by_brand');
+        $this->data['entry_footer_gift_voucher'] = $this->language->get('entry_footer_gift_voucher');
+        $this->data['entry_footer_affiliate'] = $this->language->get('entry_footer_affiliate');
+        $this->data['entry_footer_special'] = $this->language->get('entry_footer_special');
+        $this->data['entry_footer_return'] = $this->language->get('entry_footer_return');
+        $this->data['entry_footer_testimonial'] = $this->language->get('entry_footer_testimonial');
+        $this->data['entry_footer_blog'] = $this->language->get('entry_footer_blog');
+      ]]></add>
+    </operation>
+    <operation>
+      <search position="before"><![CDATA[
+        if (isset($this->request->post['config_logo'])) {
+      ]]></search>
+      <add><![CDATA[
+        if (isset($this->request->post['config_header_home'])) {
+          $this->data['config_header_home'] = $this->request->post['config_header_home'];
+        } else {
+          $this->data['config_header_home'] = $this->config->get('config_header_home');
+        }
+        if (isset($this->request->post['config_header_new_arrivals'])) {
+          $this->data['config_header_new_arrivals'] = $this->request->post['config_header_new_arrivals'];
+        } else {
+          $this->data['config_header_new_arrivals'] = $this->config->get('config_header_new_arrivals');
+        }
+        if (isset($this->request->post['config_header_shop_by_brand'])) {
+          $this->data['config_header_shop_by_brand'] = $this->request->post['config_header_shop_by_brand'];
+        } else {
+          $this->data['config_header_shop_by_brand'] = $this->config->get('config_header_shop_by_brand');
+        }
+        if (isset($this->request->post['config_header_special'])) {
+          $this->data['config_header_special'] = $this->request->post['config_header_special'];
+        } else {
+          $this->data['config_header_special'] = $this->config->get('config_header_special');
+        }
+        if (isset($this->request->post['config_footer_shop_by_brand'])) {
+          $this->data['config_footer_shop_by_brand'] = $this->request->post['config_footer_shop_by_brand'];
+        } else {
+          $this->data['config_footer_shop_by_brand'] = $this->config->get('config_footer_shop_by_brand');
+        }
+        if (isset($this->request->post['config_header_blog'])) {
+          $this->data['config_header_blog'] = $this->request->post['config_header_blog'];
+        } else {
+          $this->data['config_header_blog'] = $this->config->get('config_header_blog');
+        }
+
+
+        if (isset($this->request->post['config_footer_gift_voucher'])) {
+          $this->data['config_footer_gift_voucher'] = $this->request->post['config_footer_gift_voucher'];
+        } else {
+          $this->data['config_footer_gift_voucher'] = $this->config->get('config_footer_gift_voucher');
+        }
+        if (isset($this->request->post['config_footer_affiliate'])) {
+          $this->data['config_footer_affiliate'] = $this->request->post['config_footer_affiliate'];
+        } else {
+          $this->data['config_footer_affiliate'] = $this->config->get('config_footer_affiliate');
+        }
+        if (isset($this->request->post['config_footer_special'])) {
+          $this->data['config_footer_special'] = $this->request->post['config_footer_special'];
+        } else {
+          $this->data['config_footer_special'] = $this->config->get('config_footer_special');
+        }
+        if (isset($this->request->post['config_footer_return'])) {
+          $this->data['config_footer_return'] = $this->request->post['config_footer_return'];
+        } else {
+          $this->data['config_footer_return'] = $this->config->get('config_footer_return');
+        }
+        if (isset($this->request->post['config_footer_testimonial'])) {
+          $this->data['config_footer_testimonial'] = $this->request->post['config_footer_testimonial'];
+        } else {
+          $this->data['config_footer_testimonial'] = $this->config->get('config_footer_testimonial');
+        }
+        if (isset($this->request->post['config_footer_blog'])) {
+          $this->data['config_footer_blog'] = $this->request->post['config_footer_blog'];
+        } else {
+          $this->data['config_footer_blog'] = $this->config->get('config_footer_blog');
+        }
+      ]]></add>
+    </operation>
+  </file>
+
+  <!-- /C A T A L O G -->
+  <file name="catalog/controller/common/header.php">
+    <operation>
+      <search position="after"><![CDATA[
+        $this->data['checkout'] = $this->url->link('checkout/checkout', '', 'SSL');
+      ]]></search>
+      <add><![CDATA[
+        $this->data['text_new_arrivals']     = $this->language->get('text_new_arrivals');
+        $this->data['text_shop_by_brand']    = $this->language->get('text_shop_by_brand');
+        $this->data['text_sale']             = $this->language->get('text_sale');
+
+        $this->data['sale']                  = $this->url->link('product/special');
+        $this->data['new_arrivals']          = $this->url->link('product/new_arrivals');
+        $this->data['shop_by_brand']         = $this->url->link('product/manufacturer');
+
+        $this->data['display_home']          = $this->config->get('config_header_home');
+        $this->data['display_new_arrivals']  = $this->config->get('config_header_new_arrivals');
+        $this->data['display_shop_by_brand'] = $this->config->get('config_header_shop_by_brand');
+        $this->data['display_special']       = $this->config->get('config_header_special');
+        $this->data['display_blog']       = $this->config->get('config_header_blog');
+
+      ]]></add>
+    </operation>
+  </file>
+
+  <file name="catalog/controller/common/footer.php">
+    <operation>
+      <search position="after"><![CDATA[
+        $this->data['newsletter'] = $this->url->link('account/newsletter', '', 'SSL');
+      ]]></search>
+      <add><![CDATA[
+        $this->data['text_sale']             = $this->language->get('text_sale');
+        $this->data['sale']                  = $this->url->link('product/special');
+
+        $this->data['display_shop_by_brand'] = $this->config->get('config_footer_shop_by_brand');
+        $this->data['display_gift_voucher']  = $this->config->get('config_footer_gift_voucher');
+        $this->data['display_affiliate']     = $this->config->get('config_footer_affiliate');
+        $this->data['display_special']       = $this->config->get('config_footer_special');
+        $this->data['display_return']        = $this->config->get('config_footer_return');
+        $this->data['display_testimonial']        = $this->config->get('config_footer_testimonial');
+        $this->data['display_blog']       = $this->config->get('config_footer_blog');
+      ]]></add>
+    </operation>
+  </file>
+
+</modification>

@@ -1,0 +1,16 @@
+<modification>
+	<id><![CDATA[Customer Save Fix]]></id>
+	<version><![CDATA[1.0.0]]></version>
+	<vqmver><![CDATA[2.1.5]]></vqmver>
+	<author><![CDATA[The Krotek]]></author>
+	<file name="admin/model/sale/order.php">
+		<operation>
+			<search position="before"><![CDATA[$this->db->query("UPDATE `" . DB_PREFIX . "order` SET firstname]]></search>
+			<add><![CDATA[
+
+			$this->db->query("UPDATE `".DB_PREFIX."order` SET customer_id = '".(int)$data['customer_id']."', customer_group_id = '".(int)$data['customer_group_id']."' WHERE order_id = '".(int)$order_id."'");
+
+			]]></add>
+		</operation>
+	</file>
+</modification>

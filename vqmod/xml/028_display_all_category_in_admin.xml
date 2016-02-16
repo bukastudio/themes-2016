@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modification>
+
+	<id>Admin Catalog Category All (in one page)</id>
+	<version>1.0.0</version>
+	<vqmver>2.0.0</vqmver>
+	<author><![CDATA[<a onClick="window.open('http://www.opencart.com/index.php?route=extension/extension&filter_username=frymi');" title="View all OpenCart extension by frymi">frymi</a>]]></author>
+
+	<file name="admin/controller/catalog/category.php">
+		<operation>
+			<search position="replace"><![CDATA['limit' => $this->config->get('config_admin_limit')]]></search>
+			                      <add><![CDATA['limit' => $this->model_catalog_category->getTotalCategories()]]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA[$pagination->limit = $this->config->get('config_admin_limit');]]></search>
+			                      <add><![CDATA[$pagination->limit = $this->model_catalog_category->getTotalCategories();]]></add>
+		</operation>
+
+	</file>
+
+</modification>

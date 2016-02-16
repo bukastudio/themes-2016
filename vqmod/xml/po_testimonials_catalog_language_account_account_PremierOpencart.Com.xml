@@ -1,0 +1,18 @@
+<modification>
+  <id>PO Testimonials - PremierOpencart.Com - Catalog/Language/Account</id>
+  <version>1.0</version>
+  <vqmver>1.0.8</vqmver>
+  <author>PremierOpencart.Com</author>
+  <file name="catalog/language/english/account/account.php">
+    <operation>
+      <search position="after">
+        <![CDATA[$_['text_newsletter']    = 'Subscribe / unsubscribe to newsletter';]]>
+      </search>
+      <add>
+        <![CDATA[
+		$_['text_testimonial']            = 'Submit Your Testimonial';
+		]]>
+      </add>
+    </operation>
+  </file>
+</modification>

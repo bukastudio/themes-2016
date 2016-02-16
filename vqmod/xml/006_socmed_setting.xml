@@ -1,0 +1,297 @@
+<modification>
+	<id>Social Media Settings</id>
+	<version>1.0</version>
+	<vqmver>2.1.5</vqmver>
+	<author>Bukatoko.com</author>
+
+	<!--
+		ADMIN
+	-->
+	<file name="admin/controller/setting/setting.php">
+		<operation>
+			<search position="after"><![CDATA[
+				$this->data['tab_server'] = $this->language->get('tab_server');
+			]]></search>
+			<add><![CDATA[
+				$this->data['tab_socmed']           = $this->language->get('tab_socmed');
+				$this->data['tab_footericons']      = $this->language->get('tab_footericons');
+
+				$this->data['entry_facebook']       = $this->language->get('entry_facebook');
+				$this->data['entry_twitter']        = $this->language->get('entry_twitter');
+				$this->data['entry_pinterest']      = $this->language->get('entry_pinterest');
+				$this->data['entry_googleplus']     = $this->language->get('entry_googleplus');
+				$this->data['entry_instagram']      = $this->language->get('entry_instagram');
+				$this->data['entry_footericons']  = $this->language->get('entry_footericons');
+
+				$this->data['entry_zopim']        = $this->language->get('entry_zopim');
+			]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[
+				$this->load->model('design/layout');
+			]]></search>
+			<add><![CDATA[
+
+				if (isset($this->request->post['config_facebook'])) {
+					$this->data['config_facebook'] = $this->request->post['config_facebook'];
+				} else {
+					$this->data['config_facebook'] = $this->config->get('config_facebook');
+				}
+				if (isset($this->request->post['config_twitter'])) {
+					$this->data['config_twitter'] = $this->request->post['config_twitter'];
+				} else {
+					$this->data['config_twitter'] = $this->config->get('config_twitter');
+				}
+				if (isset($this->request->post['config_pinterest'])) {
+					$this->data['config_pinterest'] = $this->request->post['config_pinterest'];
+				} else {
+					$this->data['config_pinterest'] = $this->config->get('config_pinterest');
+				}
+				if (isset($this->request->post['config_googleplus'])) {
+					$this->data['config_googleplus'] = $this->request->post['config_googleplus'];
+				} else {
+					$this->data['config_googleplus'] = $this->config->get('config_googleplus');
+				}
+				if (isset($this->request->post['config_instagram'])) {
+					$this->data['config_instagram'] = $this->request->post['config_instagram'];
+				} else {
+					$this->data['config_instagram'] = $this->config->get('config_instagram');
+				}
+				if (isset($this->request->post['config_zopim'])) {
+					$this->data['config_zopim'] = $this->request->post['config_zopim'];
+				} else {
+					$this->data['config_zopim'] = $this->config->get('config_zopim');
+				}
+			]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[
+				if (isset($this->request->post['config_logo'])) {
+			]]></search>
+			<add><![CDATA[
+				// if (isset($this->request->post['config_ym_online_img'])) {
+				// 	$this->data['config_ym_online_img'] = $this->request->post['config_ym_online_img'];
+				// } else {
+				// 	$this->data['config_ym_online_img'] = $this->config->get('config_ym_online_img');
+				// }
+
+				// if ($this->config->get('config_ym_online_img') && file_exists(DIR_IMAGE . $this->config->get('config_ym_online_img')) && is_file(DIR_IMAGE . $this->config->get('config_ym_online_img'))) {
+				// 	$this->data['ym_online_img'] = $this->model_tool_image->resize($this->config->get('config_ym_online_img'), 100,100);
+				// } else {
+				// 	$this->data['ym_online_img'] = $this->model_tool_image->resize('no_image.jpg', 100,100);
+				// }
+
+				// if (isset($this->request->post['config_ym_offline_img'])) {
+				// 	$this->data['config_ym_offline_img'] = $this->request->post['config_ym_offline_img'];
+				// } else {
+				// 	$this->data['config_ym_offline_img'] = $this->config->get('config_ym_offline_img');
+				// }
+
+				// if ($this->config->get('config_ym_offline_img') && file_exists(DIR_IMAGE . $this->config->get('config_ym_offline_img')) && is_file(DIR_IMAGE . $this->config->get('config_ym_offline_img'))) {
+				// 	$this->data['ym_offline_img'] = $this->model_tool_image->resize($this->config->get('config_ym_offline_img'), 100,100);
+				// } else {
+				// 	$this->data['ym_offline_img'] = $this->model_tool_image->resize('no_image.jpg', 100,100);
+				// }
+
+				if (isset($this->request->post['config_footericons_1'])) {
+					$this->data['config_footericons_1'] = $this->request->post['config_footericons_1'];
+				} else {
+					$this->data['config_footericons_1'] = $this->config->get('config_footericons_1');
+				}
+
+				if ($this->config->get('config_footericons_1') && file_exists(DIR_IMAGE . $this->config->get('config_footericons_1')) && is_file(DIR_IMAGE . $this->config->get('config_footericons_1'))) {
+					$this->data['footericons_1'] = $this->model_tool_image->resize($this->config->get('config_footericons_1'), 100,100);
+				} else {
+					$this->data['footericons_1'] = $this->model_tool_image->resize('no_image.jpg', 100,100);
+				}
+				if (isset($this->request->post['config_footericons_2'])) {
+					$this->data['config_footericons_2'] = $this->request->post['config_footericons_2'];
+				} else {
+					$this->data['config_footericons_2'] = $this->config->get('config_footericons_2');
+				}
+
+				if ($this->config->get('config_footericons_2') && file_exists(DIR_IMAGE . $this->config->get('config_footericons_2')) && is_file(DIR_IMAGE . $this->config->get('config_footericons_2'))) {
+					$this->data['footericons_2'] = $this->model_tool_image->resize($this->config->get('config_footericons_2'), 100,100);
+				} else {
+					$this->data['footericons_2'] = $this->model_tool_image->resize('no_image.jpg', 100,100);
+				}
+				if (isset($this->request->post['config_footericons_3'])) {
+					$this->data['config_footericons_3'] = $this->request->post['config_footericons_3'];
+				} else {
+					$this->data['config_footericons_3'] = $this->config->get('config_footericons_3');
+				}
+
+				if ($this->config->get('config_footericons_3') && file_exists(DIR_IMAGE . $this->config->get('config_footericons_3')) && is_file(DIR_IMAGE . $this->config->get('config_footericons_3'))) {
+					$this->data['footericons_3'] = $this->model_tool_image->resize($this->config->get('config_footericons_3'), 100,100);
+				} else {
+					$this->data['footericons_3'] = $this->model_tool_image->resize('no_image.jpg', 100,100);
+				}
+				if (isset($this->request->post['config_footericons_4'])) {
+					$this->data['config_footericons_4'] = $this->request->post['config_footericons_4'];
+				} else {
+					$this->data['config_footericons_4'] = $this->config->get('config_footericons_4');
+				}
+
+				if ($this->config->get('config_footericons_4') && file_exists(DIR_IMAGE . $this->config->get('config_footericons_4')) && is_file(DIR_IMAGE . $this->config->get('config_footericons_4'))) {
+					$this->data['footericons_4'] = $this->model_tool_image->resize($this->config->get('config_footericons_4'), 100,100);
+				} else {
+					$this->data['footericons_4'] = $this->model_tool_image->resize('no_image.jpg', 100,100);
+				}
+				if (isset($this->request->post['config_footericons_5'])) {
+					$this->data['config_footericons_5'] = $this->request->post['config_footericons_5'];
+				} else {
+					$this->data['config_footericons_5'] = $this->config->get('config_footericons_5');
+				}
+
+				if ($this->config->get('config_footericons_5') && file_exists(DIR_IMAGE . $this->config->get('config_footericons_5')) && is_file(DIR_IMAGE . $this->config->get('config_footericons_5'))) {
+					$this->data['footericons_5'] = $this->model_tool_image->resize($this->config->get('config_footericons_5'), 100,100);
+				} else {
+					$this->data['footericons_5'] = $this->model_tool_image->resize('no_image.jpg', 100,100);
+				}
+			]]></add>
+		</operation>
+	</file>
+	<file name="admin/controller/setting/store.php">
+		<operation>
+			<search position="after"><![CDATA[
+				$this->data['tab_server'] = $this->language->get('tab_server');
+			]]></search>
+			<add><![CDATA[
+				$this->data['tab_socmed']           = $this->language->get('tab_socmed');
+				$this->data['tab_footericons']      = $this->language->get('tab_footericons');
+				$this->data['entry_zopim']        = $this->language->get('entry_zopim');
+				$this->data['entry_facebook']       = $this->language->get('entry_facebook');
+				$this->data['entry_twitter']        = $this->language->get('entry_twitter');
+				$this->data['entry_pinterest']      = $this->language->get('entry_pinterest');
+				$this->data['entry_googleplus']     = $this->language->get('entry_googleplus');
+				$this->data['entry_instagram']      = $this->language->get('entry_instagram');
+				$this->data['entry_footericons']  = $this->language->get('entry_footericons');
+
+			]]></add>
+		</operation>
+	</file>
+	<file name="admin/view/template/setting/setting.tpl">
+		<operation>
+			<search position="iafter"><![CDATA[
+				<a href="#tab-server"><?php echo $tab_server; ?></a>
+			]]></search>
+			<add><![CDATA[
+				<a href="#tab-socmed"><?php echo $tab_socmed; ?></a><a href="#tab-footericons"><?php echo $tab_footericons; ?></a>
+			]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[
+				<div id="tab-server">
+			]]></search>
+			<add><![CDATA[
+				<div id="tab-socmed">
+					<h2>Social Media</h2>
+					<table class="form">
+						<tr>
+							<td><?php echo $entry_facebook; ?></td>
+							<td>http://facebook.com/<input type="text" name="config_facebook" value="<?php echo $config_facebook; ?>" /></td>
+						</tr>
+						<tr>
+							<td><?php echo $entry_twitter; ?></td>
+							<td>http://twitter.com/<input type="text" name="config_twitter" value="<?php echo $config_twitter; ?>" /></td>
+						</tr>
+						<tr>
+							<td><?php echo $entry_pinterest; ?></td>
+							<td>http://pinterest.com/<input type="text" name="config_pinterest" value="<?php echo $config_pinterest; ?>" /></td>
+						</tr>
+						<tr>
+							<td><?php echo $entry_googleplus; ?></td>
+							<td>https://plus.google.com/<input type="text" name="config_googleplus" value="<?php echo $config_googleplus; ?>" /></td>
+						</tr>
+						<tr>
+							<td><?php echo $entry_instagram; ?></td>
+							<td>http://instagram.com/<input type="text" name="config_instagram" value="<?php echo $config_instagram; ?>" /></td>
+						</tr>
+					</table>
+
+					<h2>Live Chat</h2>
+					<table class="form">
+						<tr>
+							<td><?php echo $entry_zopim; ?></td>
+							<td><textarea name="config_zopim" cols="40" rows="5"><?php echo $config_zopim; ?></textarea></td>
+						</tr>
+					</table>
+				</div>
+
+				<div id="tab-footericons">
+					<table class="form">
+						<tr>
+							<td><?php echo $entry_footericons; ?></td>
+							<td><div class="image"><img src="<?php echo $footericons_1; ?>" alt="" id="thumb-footericons-1" />
+							<input type="hidden" name="config_footericons_1" value="<?php echo $config_footericons_1; ?>" id="footericons-1" />
+							<br />
+							<a onclick="image_upload('footericons-1', 'thumb-footericons-1');"><?php echo $text_browse; ?></a>&nbsp;&nbsp;|&nbsp;&nbsp;<a onclick="$('#thumb-footericons-1').attr('src', '<?php echo $no_image; ?>'); $('#footericons-1').attr('value', '');"><?php echo $text_clear; ?></a></div>
+
+							<div class="image"><img src="<?php echo $footericons_2; ?>" alt="" id="thumb-footericons-2" />
+							<input type="hidden" name="config_footericons_2" value="<?php echo $config_footericons_2; ?>" id="footericons-2" />
+							<br />
+							<a onclick="image_upload('footericons-2', 'thumb-footericons-2');"><?php echo $text_browse; ?></a>&nbsp;&nbsp;|&nbsp;&nbsp;<a onclick="$('#thumb-footericons-2').attr('src', '<?php echo $no_image; ?>'); $('#footericons-2').attr('value', '');"><?php echo $text_clear; ?></a></div>
+
+							<div class="image"><img src="<?php echo $footericons_3; ?>" alt="" id="thumb-footericons-3" />
+							<input type="hidden" name="config_footericons_3" value="<?php echo $config_footericons_3; ?>" id="footericons-3" />
+							<br />
+							<a onclick="image_upload('footericons-3', 'thumb-footericons-3');"><?php echo $text_browse; ?></a>&nbsp;&nbsp;|&nbsp;&nbsp;<a onclick="$('#thumb-footericons-3').attr('src', '<?php echo $no_image; ?>'); $('#footericons-3').attr('value', '');"><?php echo $text_clear; ?></a></div>
+
+							<div class="image"><img src="<?php echo $footericons_4; ?>" alt="" id="thumb-footericons-4" />
+							<input type="hidden" name="config_footericons_4" value="<?php echo $config_footericons_4; ?>" id="footericons-4" />
+							<br />
+							<a onclick="image_upload('footericons-4', 'thumb-footericons-4');"><?php echo $text_browse; ?></a>&nbsp;&nbsp;|&nbsp;&nbsp;<a onclick="$('#thumb-footericons-4').attr('src', '<?php echo $no_image; ?>'); $('#footericons-4').attr('value', '');"><?php echo $text_clear; ?></a></div>
+
+							<div class="image"><img src="<?php echo $footericons_5; ?>" alt="" id="thumb-footericons-5" />
+							<input type="hidden" name="config_footericons_5" value="<?php echo $config_footericons_5; ?>" id="footericons-5" />
+							<br />
+							<a onclick="image_upload('footericons-5', 'thumb-footericons-5');"><?php echo $text_browse; ?></a>&nbsp;&nbsp;|&nbsp;&nbsp;<a onclick="$('#thumb-footericons-5').attr('src', '<?php echo $no_image; ?>'); $('#footericons-5').attr('value', '');"><?php echo $text_clear; ?></a></div>
+						</td>
+						</tr>
+
+					</table>
+				</div>
+			]]></add>
+		</operation>
+	</file>
+	<file name="admin/view/template/setting/store_form.tpl">
+		<operation>
+			<search position="iafter"><![CDATA[
+				<a href="#tab-server"><?php echo $tab_server; ?></a>
+			]]></search>
+			<add><![CDATA[
+				<a href="#tab-socmed"><?php echo $tab_socmed; ?></a><a href="#tab-footericons"><?php echo $tab_footericons; ?></a>
+			]]></add>
+		</operation>
+	</file>
+	<file name="admin/language/english/setting/setting.php">
+		<operation>
+			<search position="after"><![CDATA[
+				$_['text_smtp']                    = 'SMTP';
+			]]></search>
+			<add><![CDATA[
+				$_['entry_zopim']        	 = 'ZOPIM widget code:';
+				$_['entry_facebook']         = 'Facebook ID:';
+				$_['entry_twitter']          = 'Twitter ID:';
+				$_['entry_pinterest']        = 'Pinterest ID:';
+				$_['entry_googleplus']       = 'Google+ ID:';
+				$_['entry_instagram']        = 'Instagram ID:';
+				$_['entry_footericons']    = 'Footer:';
+			]]></add>
+		</operation>
+	</file>
+
+	<file name="admin/language/english/english.php">
+		<operation>
+			<search position="after"><![CDATA[
+				 $_['tab_price']                     = 'Price';
+			]]></search>
+			<add><![CDATA[
+				 $_['tab_socmed']                    = 'SocMed';
+					$_['tab_footericons']                    = 'Footer';
+			]]></add>
+		</operation>
+	</file>
+
+
+</modification>

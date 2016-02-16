@@ -1,0 +1,19 @@
+<modification>
+  <id>PO Testimonials - PremierOpencart.Com - Catalog/Controller/Account/Account</id>
+  <version>1.0</version>
+  <vqmver>1.0.8</vqmver>
+  <author>PremierOpencart.Com</author>
+  <file name="catalog/controller/account/account.php">
+    <operation>
+      <search position="after">
+        <![CDATA[$this->data['newsletter'] = $this->url->link('account/newsletter', '', 'SSL');]]>
+      </search>
+      <add>
+        <![CDATA[
+          $this->data['text_testimonial'] = $this->language->get('text_testimonial');
+          $this->data['testimonial'] = $this->url->link('account/testimonial');
+		  ]]>
+      </add>
+    </operation>
+  </file>
+</modification>

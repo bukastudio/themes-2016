@@ -1,0 +1,56 @@
+<modification>
+  <id>Blog System</id>
+  <version>1.0</version>
+  <vqmver>2.1.5</vqmver>
+  <author>Bukatoko.com</author>
+
+  <file name="admin/controller/common/header.php">
+    <operation>
+      <search position="after"><![CDATA[
+        $this->data['text_openbay_order_import'] = $this->language->get('text_openbay_order_import');
+      ]]></search>
+      <add><![CDATA[
+        $this->data['text_blog'] = $this->language->get('text_blog');
+        $this->data['text_blog_category'] = $this->language->get('text_blog_category');
+      ]]></add>
+    </operation>
+    <operation>
+      <search position="after"><![CDATA[
+        $this->data['zone'] = $this->url->link('localisation/zone', 'token=' . $this->session->data['token'], 'SSL');
+      ]]></search>
+      <add><![CDATA[
+        $this->data['blog'] = $this->url->link('catalog/blog', 'token=' . $this->session->data['token'], 'SSL');
+        $this->data['blog_category'] = $this->url->link('catalog/blog_category', 'token=' . $this->session->data['token'], 'SSL');
+      ]]></add>
+    </operation>
+  </file>
+
+  <file name="admin/language/english/common/header.php">
+    <operation>
+      <search position="after"><![CDATA[
+        $_['text_recurring_profile']
+      ]]></search>
+      <add><![CDATA[
+        $_['text_blog']             = 'Blog';
+        $_['text_blog_category']    = 'Blog Categories';
+      ]]></add>
+    </operation>
+  </file>
+
+  <file name="admin/view/template/common/header.tpl">
+    <operation>
+      <search position="after"><![CDATA[
+        <li><a href="<?php echo $information; ?>"><?php echo $text_information; ?></a></li>
+      ]]></search>
+      <add><![CDATA[
+        <li><a class="parent"><?php echo $text_blog; ?></a>
+          <ul>
+            <li><a href="<?php echo $blog; ?>"><?php echo $text_blog; ?></a>
+            <li><a href="<?php echo $blog_category; ?>"><?php echo $text_blog_category; ?></a>
+          </ul>
+        </li>
+      ]]></add>
+    </operation>
+  </file>
+
+</modification>

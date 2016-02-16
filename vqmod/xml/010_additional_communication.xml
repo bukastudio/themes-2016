@@ -1,0 +1,77 @@
+<modification>
+  <id>Additional Communication</id>
+  <version>1.0</version>
+  <vqmver>2.1.5</vqmver>
+  <author>Bukatoko.com</author>
+
+  <file name="admin/view/template/setting/setting.tpl">
+    <operation>
+      <search position="after" offset="2"><![CDATA[
+        <td><?php echo $entry_fax; ?></td>
+      ]]></search>
+      <add><![CDATA[
+        <tr>
+          <td><?php echo $entry_whatsapp; ?></td>
+          <td><input type="text" name="config_whatsapp" value="<?php echo $config_whatsapp; ?>" /></td>
+        </tr>
+        <tr>
+          <td><?php echo $entry_blackberry; ?></td>
+          <td><input type="text" name="config_blackberry" value="<?php echo $config_blackberry; ?>" /></td>
+        </tr>
+        <tr>
+          <td><?php echo $entry_lineapp; ?></td>
+          <td><input type="text" name="config_lineapp" value="<?php echo $config_lineapp; ?>" /></td>
+        </tr>
+      ]]></add>
+    </operation>
+  </file>
+
+  <file name="admin/language/english/setting/setting.php">
+    <operation>
+      <search position="after"><![CDATA[
+        $_['entry_name']
+      ]]></search>
+      <add><![CDATA[
+        $_['entry_whatsapp']                    = 'Whatsapp';
+        $_['entry_blackberry']                    = 'Blackberry PIN';
+        $_['entry_lineapp']                    = 'Line';
+      ]]></add>
+    </operation>
+  </file>
+
+  <file name="admin/controller/setting/setting.php">
+    <operation>
+      <search position="after"><![CDATA[
+        $this->data['tab_server'] = $this->language->get('tab_server');
+      ]]></search>
+      <add><![CDATA[
+        $this->data['entry_whatsapp']        = $this->language->get('entry_whatsapp');
+        $this->data['entry_blackberry']        = $this->language->get('entry_blackberry');
+        $this->data['entry_lineapp']        = $this->language->get('entry_lineapp');
+      ]]></add>
+    </operation>
+    <operation>
+      <search position="before"><![CDATA[
+        $this->load->model('design/layout');
+      ]]></search>
+      <add><![CDATA[
+        if (isset($this->request->post['config_whatsapp'])) {
+          $this->data['config_whatsapp'] = $this->request->post['config_whatsapp'];
+        } else {
+          $this->data['config_whatsapp'] = $this->config->get('config_whatsapp');
+        }
+        if (isset($this->request->post['config_blackberry'])) {
+          $this->data['config_blackberry'] = $this->request->post['config_blackberry'];
+        } else {
+          $this->data['config_blackberry'] = $this->config->get('config_blackberry');
+        }
+        if (isset($this->request->post['config_lineapp'])) {
+          $this->data['config_lineapp'] = $this->request->post['config_lineapp1'];
+        } else {
+          $this->data['config_lineapp'] = $this->config->get('config_lineapp');
+        }
+      ]]></add>
+    </operation>
+  </file>
+
+</modification>

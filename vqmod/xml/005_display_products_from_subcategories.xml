@@ -1,0 +1,18 @@
+<modification>
+
+	<id>Products By SubCategories Included in Category</id>
+	<version>1.0.0</version>
+	<vqmver>2.1.1</vqmver>
+	<author>ovife21</author>
+	
+	<file name="catalog/model/catalog/product.php">
+		<operation>
+			<search position="replace"><![CDATA[$sql .= " FROM " . DB_PREFIX . "product_to_category p2c";]]></search>
+			<add><![CDATA[$sql .= " FROM " . DB_PREFIX . "category_path cp LEFT JOIN " . DB_PREFIX . "product_to_category p2c ON (cp.category_id = p2c.category_id)";]]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA[$sql .= " AND p2c.category_id = '" . (int)$data['filter_category_id'] . "'";]]></search>
+			<add><![CDATA[$sql .= " AND cp.path_id = '" . (int)$data['filter_category_id'] . "'";]]></add>
+		</operation>
+	</file>
+</modification>

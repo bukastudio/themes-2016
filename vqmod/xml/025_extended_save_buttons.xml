@@ -1,0 +1,233 @@
+<modification>
+<id><![CDATA[Extended Save Buttons]]></id>
+<version><![CDATA[1]]></version>
+<opencart><![CDATA[1.5.5.1-1.5.6.X]]></opencart>
+<vqmver><![CDATA[2.5.1]]></vqmver>
+<author><![CDATA[Raul Marosan]]></author>
+<file name="admin/model/catalog/product.php">
+<operation>
+<search position="before" offset="2"><![CDATA[
+public function editProduct($product_id, $data) {
+]]></search>
+<add trim="true"><![CDATA[
+return $product_id;
+]]></add>
+</operation>
+</file>
+<file name="admin/controller/catalog/product.php">
+<operation>
+<search position="replace"><![CDATA[
+$this->model_catalog_product->addProduct
+]]></search>
+<add trim="true"><![CDATA[
+$product_id = $this->model_catalog_product->addProduct
+]]></add>
+</operation>
+<operation>
+<search position="before" offset="6"><![CDATA[
+public function update() {
+]]></search>
+<add trim="true"><![CDATA[
+if (!isset($this->request->get['continue']) && !isset($this->request->get['new'])) {
+]]></add>
+</operation>
+<operation>
+<search position="before" offset="5"><![CDATA[
+public function update() {
+]]></search>
+<add trim="true"><![CDATA[
+}
+elseif (isset($this->request->get['continue'])) {
+	$this->redirect($this->url->link('catalog/product/update', 'token=' . $this->session->data['token'] . $url . '&product_id=' . $product_id . '&continue=true', 'SSL'));
+}
+else {
+	$this->redirect($this->url->link('catalog/product/insert', 'token=' . $this->session->data['token'] . '&new=true', 'SSL'));
+}
+]]></add>
+</operation>
+<operation>
+<search position="before" offset="6"><![CDATA[
+public function delete() {
+]]></search>
+<add trim="true"><![CDATA[
+if (!isset($this->request->get['continue']) && !isset($this->request->get['new'])) {
+]]></add>
+</operation>
+<operation>
+<search position="before" offset="5"><![CDATA[
+public function delete() {
+]]></search>
+<add trim="true"><![CDATA[
+}
+elseif (isset($this->request->get['new'])) {
+	$this->redirect($this->url->link('catalog/product/insert', 'token=' . $this->session->data['token'] . '&new=true', 'SSL'));
+}
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+if (isset($this->error['model'])) {
+]]></search>
+<add trim="true"><![CDATA[
+if ((isset($this->request->get['continue']) || isset($this->request->get['new'])) && (!isset($this->error) || empty($this->error))) {
+	$this->data['success'] = $this->language->get('text_success');
+}
+if (isset($this->error['model'])) {
+]]></add>
+</operation>
+</file>
+<file name="admin/view/template/catalog/product_form.tpl">
+<operation>
+<search position="replace"><![CDATA[
+<a href="<?php echo $cancel; ?>" class="button">
+]]></search>
+<add trim="true"><![CDATA[
+<a id="continue" class="button">Apply</a><a id="add-new" class="button">Save & Add New</a><a href="<?php echo $cancel; ?>" class="button">
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+<?php if ($error_warning) { ?>
+]]></search>
+<add trim="true"><![CDATA[
+<?php if (isset($success)) { ?>
+<div class="success"><?php echo $success; ?></div>
+<?php } ?>
+<?php if ($error_warning) { ?>
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+<?php echo $footer; ?>
+]]></search>
+<add><![CDATA[
+<script type="text/javascript"><!--
+$('#continue').click(function(e) {
+	e.preventDefault();
+	$('#form').attr('action', $('#form').attr('action') + '&continue=true');
+	$('#form').submit();
+});
+$('#add-new').click(function(e) {
+	e.preventDefault();
+	$('#form').attr('action', $('#form').attr('action') + '&new=true');
+	$('#form').submit();
+});
+//--></script>
+<?php echo $footer; ?>
+]]></add>
+</operation>
+</file>
+<file name="admin/model/catalog/category.php">
+<operation>
+<search position="before" offset="2"><![CDATA[
+public function editCategory($category_id, $data) {
+]]></search>
+<add trim="true"><![CDATA[
+return $category_id;
+]]></add>
+</operation>
+</file>
+<file name="admin/controller/catalog/category.php">
+<operation>
+<search position="replace"><![CDATA[
+$this->model_catalog_category->addCategory
+]]></search>
+<add trim="true"><![CDATA[
+$category_id = $this->model_catalog_category->addCategory
+]]></add>
+</operation>
+<operation>
+<search position="before" offset="6"><![CDATA[
+public function update() {
+]]></search>
+<add trim="true"><![CDATA[
+if (!isset($this->request->get['continue']) && !isset($this->request->get['new'])) {
+]]></add>
+</operation>
+<operation>
+<search position="before" offset="5"><![CDATA[
+public function update() {
+]]></search>
+<add trim="true"><![CDATA[
+}
+elseif (isset($this->request->get['continue'])) {
+	$this->redirect($this->url->link('catalog/category/update', 'token=' . $this->session->data['token'] . $url . '&category_id=' . $category_id . '&continue=true', 'SSL'));
+}
+else {
+	$this->redirect($this->url->link('catalog/category/insert', 'token=' . $this->session->data['token'] . '&new=true', 'SSL'));
+}
+]]></add>
+</operation>
+<operation>
+<search position="before" offset="6"><![CDATA[
+public function delete() {
+]]></search>
+<add trim="true"><![CDATA[
+if (!isset($this->request->get['continue']) && !isset($this->request->get['new'])) {
+]]></add>
+</operation>
+<operation>
+<search position="before" offset="5"><![CDATA[
+public function delete() {
+]]></search>
+<add trim="true"><![CDATA[
+}
+elseif (isset($this->request->get['new'])) {
+	$this->redirect($this->url->link('catalog/category/insert', 'token=' . $this->session->data['token'] . '&new=true', 'SSL'));
+}
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+if (isset($this->error['name'])) {
+]]></search>
+<add trim="true"><![CDATA[
+if ((isset($this->request->get['continue']) || isset($this->request->get['new'])) && (!isset($this->error) || empty($this->error))) {
+	$this->data['success'] = $this->language->get('text_success');
+}
+if (isset($this->error['name'])) {
+]]></add>
+</operation>
+</file>
+<file name="admin/view/template/catalog/category_form.tpl">
+<operation>
+<search position="replace"><![CDATA[
+<a href="<?php echo $cancel; ?>" class="button">
+]]></search>
+<add trim="true"><![CDATA[
+<a id="continue" class="button">Apply</a><a id="add-new" class="button">Save & Add New</a><a href="<?php echo $cancel; ?>" class="button">
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+<?php if ($error_warning) { ?>
+]]></search>
+<add trim="true"><![CDATA[
+<?php if (isset($success)) { ?>
+<div class="success"><?php echo $success; ?></div>
+<?php } ?>
+<?php if ($error_warning) { ?>
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+<?php echo $footer; ?>
+]]></search>
+<add><![CDATA[
+<script type="text/javascript"><!--
+$('#continue').click(function(e) {
+	e.preventDefault();
+	$('#form').attr('action', $('#form').attr('action') + '&continue=true');
+	$('#form').submit();
+});
+$('#add-new').click(function(e) {
+	e.preventDefault();
+	$('#form').attr('action', $('#form').attr('action') + '&new=true');
+	$('#form').submit();
+});
+//--></script>
+<?php echo $footer; ?>
+]]></add>
+</operation>
+</file>
+</modification>

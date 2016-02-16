@@ -1,0 +1,882 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modification>
+  <id>Autocomplete No More 1.5.5 +</id>
+  <version>1.1.0</version>
+  <vqmver>2.1.7</vqmver>
+  <author>justcurious - phil.brighton@virgin.net</author>
+  <file name="admin/language/*/catalog/product.php">
+    <operation>
+            <search position="before"><![CDATA[
+$_['text_amount']
+            ]]></search>
+            <add><![CDATA[
+$_['text_select_all']             = 'Select All';
+$_['text_unselect_all']             = 'Unselect all';
+$_['text_add_option']             = '  -- Add Option --';
+      ]]></add>
+        </operation>
+    <operation>
+            <search position="after"><![CDATA[
+$_['entry_layout']
+            ]]></search>
+            <add><![CDATA[
+$_['entry_manufacturer']     = 'Manufacturer:';
+$_['entry_category']         = 'Categories:';
+$_['entry_related']          = 'Related Products:';
+$_['entry_filter']           = 'Filters:';
+$_['entry_download']         = 'Downloads:';
+      ]]></add>
+        </operation>
+  </file>
+  <file name="admin/language/*/catalog/category.php">
+    <operation>
+            <search position="after"><![CDATA[
+$_['entry_layout']
+            ]]></search>
+            <add><![CDATA[
+$_['entry_filter']           = 'Filters:';
+      ]]></add>
+        </operation>
+  </file>
+  <file name="admin/language/*/module/featured.php">
+    <operation>
+            <search position="after"><![CDATA[
+$_['entry_layout']
+            ]]></search>
+            <add><![CDATA[
+$_['entry_product']           = 'Products:';
+      ]]></add>
+        </operation>
+  </file>
+
+
+  <file name="admin/view/template/catalog/product_form.tpl">
+
+    <operation>
+            <search position="replace" offset="37"><![CDATA[
+        <div id="tab-links">
+            ]]></search>
+            <add><![CDATA[
+        <div id="tab-links">
+          <table class="form">
+            <tr>
+              <td><?php echo $entry_manufacturer; ?></td>
+              <td><select name="manufacturer_id">
+                  <option value="0" selected="selected"><?php echo $text_none; ?></option>
+                  <?php foreach ($manufacturers as $manufacturer) { ?>
+                  <?php if ($manufacturer['manufacturer_id'] == $manufacturer_id) { ?>
+                  <option value="<?php echo $manufacturer['manufacturer_id']; ?>" selected="selected"><?php echo $manufacturer['name']; ?></option>
+                  <?php } else { ?>
+                  <option value="<?php echo $manufacturer['manufacturer_id']; ?>"><?php echo $manufacturer['name']; ?></option>
+                  <?php } ?>
+                  <?php } ?>
+                </select></td>
+            </tr>
+            <tr>
+              <td><?php echo $entry_category; ?></td>
+              <td><div class="scrollbox">
+                  <?php $class = 'odd'; ?>
+                  <?php foreach ($categories as $category) { ?>
+                  <?php $class = ($class == 'even' ? 'odd' : 'even'); ?>
+                  <div class="<?php echo $class; ?>">
+                    <?php if (in_array($category['category_id'], $product_category)) { ?>
+                    <input type="checkbox" name="product_category[]" value="<?php echo $category['category_id']; ?>" checked="checked" />
+                    <?php echo $category['name']; ?>
+                    <?php } else { ?>
+                    <input type="checkbox" name="product_category[]" value="<?php echo $category['category_id']; ?>" />
+                    <?php echo $category['name']; ?>
+                    <?php } ?>
+                  </div>
+                  <?php } ?>
+                </div>
+                <a onclick="$(this).parent().find(':checkbox').attr('checked', true);"><?php echo $text_select_all; ?></a> / <a onclick="$(this).parent().find(':checkbox').attr('checked', false);"><?php echo $text_unselect_all; ?></a></td>
+            </tr>
+            <tr>
+              <td><?php echo $entry_filter; ?></td>
+              <td><div class="scrollbox">
+                  <?php $class = 'odd'; ?>
+                  <?php foreach ($filters as $filter) { ?>
+                  <?php $class = ($class == 'even' ? 'odd' : 'even'); ?>
+                  <div class="<?php echo $class; ?>">
+                    <?php if (in_array($filter['filter_id'], $product_filters)) { ?>
+                    <input type="checkbox" name="product_filter[]" value="<?php echo $filter['filter_id']; ?>" checked="checked" />
+                    <?php echo $filter['name']; ?>
+                    <?php } else { ?>
+                    <input type="checkbox" name="product_filter[]" value="<?php echo $filter['filter_id']; ?>" />
+                    <?php echo $filter['name']; ?>
+                    <?php } ?>
+                  </div>
+                  <?php } ?>
+                </div>
+                <a onclick="$(this).parent().find(':checkbox').attr('checked', true);"><?php echo $text_select_all; ?></a> / <a onclick="$(this).parent().find(':checkbox').attr('checked', false);"><?php echo $text_unselect_all; ?></a></td>
+            </tr>
+
+    ]]></add>
+        </operation>
+    <operation>
+            <search position="replace" offset="13"><![CDATA[
+              <td><?php echo $entry_download; ?></td>
+            ]]></search>
+            <add><![CDATA[
+              <td><?php echo $entry_download; ?></td>
+              <td><div class="scrollbox">
+                  <?php $class = 'odd'; ?>
+                  <?php foreach ($downloads as $download) { ?>
+                  <?php $class = ($class == 'even' ? 'odd' : 'even'); ?>
+                  <div class="<?php echo $class; ?>">
+                    <?php if (in_array($download['download_id'], $product_downloads)) { ?>
+                    <input type="checkbox" name="product_download[]" value="<?php echo $download['download_id']; ?>" checked="checked" />
+                    <?php echo $download['name']; ?>
+                    <?php } else { ?>
+                    <input type="checkbox" name="product_download[]" value="<?php echo $download['download_id']; ?>" />
+                    <?php echo $download['name']; ?>
+                    <?php } ?>
+                  </div>
+                  <?php } ?>
+                </div>
+                <a onclick="$(this).parent().find(':checkbox').attr('checked', true);"><?php echo $text_select_all; ?></a> / <a onclick="$(this).parent().find(':checkbox').attr('checked', false);"><?php echo $text_unselect_all; ?></a></td>
+    ]]></add>
+        </operation>
+  </file>
+  <file name="admin/view/template/catalog/category_form.tpl">
+
+    <operation>
+            <search position="replace" offset="22"><![CDATA[
+        <div id="tab-data">
+            ]]></search>
+            <add><![CDATA[
+        <div id="tab-data">
+          <table class="form">
+            <tr>
+              <td><?php echo $entry_parent; ?></td>
+              <td><select name="parent_id">
+                  <option value="0" selected="selected"><?php echo $text_none; ?></option>
+                  <?php foreach ($categories as $category) { ?>
+                  <?php if (in_array($category['category_id'], $exclude_category)) { ?>
+                  <?php continue; ?>
+                  <?php } ?>
+                  <?php if ($category['category_id'] == $parent_id) { ?>
+                  <option value="<?php echo $category['category_id']; ?>" selected="selected"><?php echo $category['name']; ?></option>
+                  <?php } else { ?>
+                  <option value="<?php echo $category['category_id']; ?>"><?php echo $category['name']; ?></option>
+                  <?php } ?>
+                  <?php } ?>
+                </select></td>
+            </tr>
+            <tr>
+              <td><?php echo $entry_filter; ?></td>
+              <td><div class="scrollbox">
+                  <?php $class = 'odd'; ?>
+                  <?php foreach ($filters as $filter) { ?>
+                  <?php $class = ($class == 'even' ? 'odd' : 'even'); ?>
+                  <div class="<?php echo $class; ?>">
+                    <?php if (in_array($filter['filter_id'], $category_filters)) { ?>
+                    <input type="checkbox" name="category_filter[]" value="<?php echo $filter['filter_id']; ?>" checked="checked" />
+                    <?php echo $filter['name']; ?>
+                    <?php } else { ?>
+                    <input type="checkbox" name="category_filter[]" value="<?php echo $filter['filter_id']; ?>" />
+                    <?php echo $filter['name']; ?>
+                    <?php } ?>
+                  </div>
+                  <?php } ?>
+                </div>
+                <a onclick="$(this).parent().find(':checkbox').attr('checked', true);"><?php echo $text_select_all; ?></a> / <a onclick="$(this).parent().find(':checkbox').attr('checked', false);"><?php echo $text_unselect_all; ?></a></td>
+            </tr>
+
+    ]]></add>
+        </operation>
+  </file>
+  <file name="admin/controller/catalog/product.php">
+    <operation>
+            <search position="after"><![CDATA[
+    $this->data['text_amount'] = $this->language->get('text_amount');
+            ]]></search>
+            <add><![CDATA[
+    $this->data['text_select_all'] = $this->language->get('text_select_all');
+    $this->data['text_unselect_all'] = $this->language->get('text_unselect_all');
+    $this->data['text_add_option'] = $this->language->get('text_add_option');
+      ]]></add>
+        </operation>
+    <operation>
+            <search position="before"><![CDATA[
+      if (isset($this->request->post['shipping'])) {
+            ]]></search>
+            <add><![CDATA[
+/*    CLASSIC CATEGORY LINKS      */
+
+    $this->load->model('catalog/manufacturer');
+
+      $this->data['manufacturers'] = $this->model_catalog_manufacturer->getManufacturers();
+
+      if (isset($this->request->post['manufacturer_id'])) {
+          $this->data['manufacturer_id'] = $this->request->post['manufacturer_id'];
+    } elseif (!empty($product_info)) {
+      $this->data['manufacturer_id'] = $product_info['manufacturer_id'];
+    } else {
+          $this->data['manufacturer_id'] = 0;
+      }
+
+
+    $this->load->model('catalog/autocomplete_no_more');
+    $this->data['categories'] = $this->model_catalog_autocomplete_no_more->getCategories();
+
+    if (isset($this->request->post['product_category'])) {
+      $this->data['product_category'] = $this->request->post['product_category'];
+    } elseif (isset($this->request->get['product_id'])) {
+      $this->data['product_category'] = $this->model_catalog_product->getProductCategories($this->request->get['product_id']);
+    } else {
+      $this->data['product_category'] = array();
+    }
+
+    $this->data['filters'] = $this->model_catalog_autocomplete_no_more->getFilters();
+
+    if (isset($this->request->post['product_filter'])) {
+      $this->data['product_filters'] = $this->request->post['product_filter'];
+    } elseif (isset($this->request->get['product_id'])) {
+      $this->data['product_filters'] = $this->model_catalog_autocomplete_no_more->getProductFilters($this->request->get['product_id']);
+    } else {
+      $this->data['product_filters'] = array();
+    }
+
+    $this->data['downloads'] = $this->model_catalog_autocomplete_no_more->getDownloads();
+
+
+/*    END OF CLASSIC CATEGORY LINKS      */
+    ]]></add>
+        </operation>
+    <operation>
+            <search position="after"><![CDATA[
+    // Categories
+            ]]></search>
+            <add><![CDATA[
+/*    CLASSIC CATEGORY LINKS - THIS PART NOT REQUIRED ----
+      ]]></add>
+        </operation>
+    <operation>
+            <search position="before"><![CDATA[
+    // Attributes
+            ]]></search>
+            <add><![CDATA[
+---   END OF CLASSIC CATEGORY LINKS - THIS PART NOT REQUIRED ----  */
+      ]]></add>
+        </operation>
+  </file>
+  <file name="admin/controller/catalog/category.php">
+    <operation>
+            <search position="after"><![CDATA[
+    $this->data['text_amount'] = $this->language->get('text_amount');
+            ]]></search>
+            <add><![CDATA[
+    $this->data['text_select_all'] = $this->language->get('text_select_all');
+    $this->data['text_unselect_all'] = $this->language->get('text_unselect_all');
+      ]]></add>
+        </operation>
+    <operation>
+            <search position="before"><![CDATA[
+    $this->data['category_filters'] = array();
+            ]]></search>
+            <add><![CDATA[
+/*    CLASSIC CATEGORY LINKS      */
+
+
+    $this->load->model('catalog/autocomplete_no_more');
+    $this->data['categories'] = $this->model_catalog_autocomplete_no_more->getCategories();
+    if(isset($this->request->get['category_id'])) {
+      $this->data['exclude_category'] = $this->model_catalog_autocomplete_no_more->excludeCategories($this->request->get['category_id']);
+    } else {
+      $this->data['exclude_category'] = '';
+    }
+/*    if (isset($this->request->post['product_category'])) {
+      $this->data['product_category'] = $this->request->post['product_category'];
+    } elseif (isset($this->request->get['product_id'])) {
+      $this->data['product_category'] = $this->model_catalog_product->getProductCategories($this->request->get['product_id']);
+    } else {
+      $this->data['product_category'] = array();
+    } */
+
+    $this->data['filters'] = $this->model_catalog_autocomplete_no_more->getFilters();
+    $this->data['category_filters'] = array();
+    if(isset($this->request->get['category_id'])) {
+      $this->data['category_filters'] = $this->model_catalog_autocomplete_no_more->getCategoryFilters($this->request->get['category_id']);
+    }
+
+/*    END OF CLASSIC CATEGORY LINKS      */
+
+/*    CLASSIC CATEGORY LINKS - THIS PART NOT REQUIRED ----
+    ]]></add>
+        </operation>
+    <operation>
+            <search position="before"><![CDATA[
+    $this->load->model('setting/store');
+            ]]></search>
+            <add><![CDATA[
+---   END OF CLASSIC CATEGORY LINKS - THIS PART NOT REQUIRED ----  */
+      ]]></add>
+        </operation>
+  </file>
+
+  
+<!-- PRODUCT RELATED -->
+  <file name="admin/view/template/catalog/product_form.tpl">
+    <operation>
+            <search position="replace"><![CDATA[
+                  <?php foreach ($product_related as $product_related) { ?>
+            ]]></search>
+            <add><![CDATA[
+                  <?php foreach ($product_related as $related_product) { ?>
+      ]]></add>
+        </operation>
+    <operation>
+            <search position="replace"><![CDATA[$product_related[']]></search>
+            <add><![CDATA[$related_product[']]></add>
+        </operation>
+    <operation>
+            <search position="after" offset="14" index="1"><![CDATA[
+              <td><?php echo $entry_related; ?></td>
+            ]]></search>
+            <add><![CDATA[
+    -->
+          <tr>
+            <td><?php echo $entry_related; ?></td>
+            <td><table>
+                <tr>
+                  <td style="padding: 0;" colspan="3"><select id="category" style="margin-bottom: 5px;" onchange="getProducts();">
+                      <?php foreach ($categories as $category) { ?>
+                      <option value="<?php echo $category['category_id']; ?>"><?php echo $category['name']; ?></option>
+                      <?php } ?>
+                    </select></td>
+                </tr>
+                <tr>
+                  <td style="padding: 0;"><select multiple="multiple" id="product" size="10" style="min-width: 350px;">
+                    </select></td>
+                  <td style="vertical-align: middle;"><input type="button" value="--&gt;" onclick="addRelated();" />
+                    <br />
+                    <input type="button" value="&lt;--" onclick="removeRelated();" /></td>
+                  <td style="padding: 0;"><select multiple="multiple" id="related" size="10" style="min-width: 350px;">
+                    </select></td>
+                </tr>
+              </table>
+              <div id="product_related">
+        <?php reset($product_related); ?>
+                <?php foreach ($product_related as $related) { ?>
+                <input type="hidden" name="product_related[]" value="<?php echo $related['product_id']; ?>" />
+                <?php } ?>
+              </div></td>
+          </tr>
+      ]]></add>
+        </operation>
+    <operation>
+            <search position="before" offset="3" index="1"><![CDATA[
+              <td><?php echo $entry_related; ?></td>
+            ]]></search>
+            <add><![CDATA[
+      <!--
+      ]]></add>
+        </operation>
+    <operation>
+            <search position="before"><![CDATA[
+<?php echo $footer; ?>
+            ]]></search>
+            <add><![CDATA[
+<script type="text/javascript"><!--
+function addRelated() {
+  $('#product :selected').each(function() {
+    $(this).remove();
+
+    $('#related option[value=\'' + $(this).attr('value') + '\']').remove();
+
+    $('#related').append('<option value="' + $(this).attr('value') + '">' + $(this).text() + '</option>');
+
+    $('#product_related input[value=\'' + $(this).attr('value') + '\']').remove();
+
+    $('#product_related').append('<input type="hidden" name="product_related[]" value="' + $(this).attr('value') + '" />');
+  });
+}
+
+function removeRelated() {
+  $('#related :selected').each(function() {
+    $(this).remove();
+
+    $('#product_related input[value=\'' + $(this).attr('value') + '\']').remove();
+  });
+}
+
+function getProducts() {
+  $('#product option').remove();
+
+  <?php if (isset($this->request->get['product_id'])) {?>
+  var product_id = '<?php echo $this->request->get['product_id'] ?>';
+  <?php } else { ?>
+  var product_id = 0;
+  <?php } ?>
+
+  $.ajax({
+    url: 'index.php?route=catalog/product/category&token=<?php echo $token; ?>&category_id=' + $('#category').attr('value'),
+    dataType: 'json',
+    success: function(data) {
+      for (i = 0; i < data.length; i++) {
+        if (data[i]['product_id'] == product_id) { continue; }
+        $('#product').append('<option value="' + data[i]['product_id'] + '">' + data[i]['name'] + ' (' + data[i]['model'] + ') </option>');
+      }
+    }
+  });
+}
+
+function getRelated() {
+  $('#related option').remove();
+
+  $.ajax({
+    url: 'index.php?route=catalog/product/related&token=<?php echo $token; ?>',
+    type: 'POST',
+    dataType: 'json',
+    data: $('#product_related input'),
+    success: function(data) {
+      $('#product_related input').remove();
+
+      for (i = 0; i < data.length; i++) {
+        $('#related').append('<option value="' + data[i]['product_id'] + '">' + data[i]['name'] + ' (' + data[i]['model'] + ') </option>');
+
+        $('#product_related').append('<input type="hidden" name="product_related[]" value="' + data[i]['product_id'] + '" />');
+      }
+    }
+  });
+}
+
+getProducts();
+getRelated();
+//-->
+</script>
+      ]]></add>
+        </operation>
+  </file>
+  <file name="admin/controller/catalog/product.php">
+    <operation>
+            <search position="before"><![CDATA[
+  public function autocomplete() {
+            ]]></search>
+            <add><![CDATA[
+  public function category() {
+    $json = array();
+
+    $this->load->model('catalog/product');
+
+    if (isset($this->request->get['category_id'])) {
+      $category_id = $this->request->get['category_id'];
+    } else {
+      $category_id = 0;
+    }
+
+    $product_data = array();
+
+    $results = $this->model_catalog_product->getProductsByCategoryId($category_id);
+
+    foreach ($results as $result) {
+      $json[] = array(
+        'product_id' => $result['product_id'],
+        'name'       => $result['name'],
+        'model'      => $result['model']
+      );
+    }
+
+    $this->response->setOutput(json_encode($json));
+  }
+
+  public function related() {
+    $json = array();
+
+    $this->load->model('catalog/product');
+
+    if (isset($this->request->post['product_related'])) {
+      $products = $this->request->post['product_related'];
+    } else {
+      $products = array();
+    }
+
+    foreach ($products as $product_id) {
+      $product_info = $this->model_catalog_product->getProduct($product_id);
+
+      if ($product_info) {
+        $json[] = array(
+          'product_id' => $product_info['product_id'],
+          'name'       => $product_info['name'],
+          'model'    => $product_info['model']
+        );
+      }
+    }
+
+    $this->response->setOutput(json_encode($json));
+  }
+      ]]></add>
+        </operation>
+  </file>
+<!-- ATTRIBUTES -->
+  <file name="admin/controller/catalog/product.php">
+    <operation>
+            <search position="after"><![CDATA[
+    // Attributes
+            ]]></search>
+            <add><![CDATA[
+    $this->load->model('catalog/autocomplete_no_more');
+    $this->data['attributes'] = $this->model_catalog_autocomplete_no_more->getAttributes();
+      ]]></add>
+        </operation>
+  </file>
+  <file name="admin/view/template/catalog/product_form.tpl">
+    <operation>
+            <search position="replace" offset="1"><![CDATA[
+                <td class="left"><input type="text" name="product_attribute[<?php echo $attribute_row; ?>][name]" value="<?php echo $product_attribute['name']; ?>" />
+            ]]></search>
+            <add><![CDATA[
+              <td><select name="product_attribute[<?php echo $attribute_row; ?>][attribute_id]">
+                  <option value="0" selected="selected"><?php echo $text_none; ?></option>
+                  <?php foreach ($attributes as $attribute) { ?>
+                  <?php if ($attribute['attribute_id'] == $product_attribute['attribute_id']) { ?>
+                  <option value="<?php echo $attribute['attribute_id']; ?>" selected="selected"><?php echo $attribute['name']; ?></option>
+                  <?php } else { ?>
+                  <option value="<?php echo $attribute['attribute_id']; ?>"><?php echo $attribute['name']; ?></option>
+                  <?php } ?>
+                  <?php } ?>
+                </select></td>
+      ]]></add>
+        </operation>
+    <operation>
+            <search position="replace"><![CDATA[
+  html += '    <td class="left"><input type="text" name="product_attribute[' + attribute_row + '][name]" value="" /><input type="hidden" name="product_attribute[' + attribute_row + '][attribute_id]" value="" /></td>';
+            ]]></search>
+            <add><![CDATA[
+    html += '    <td><select name="product_attribute[' + attribute_row + '][attribute_id]">';
+    html += '    <option value="0" selected="selected"><?php echo $text_none; ?></option>';
+                  <?php foreach ($attributes as $attribute) { ?>
+    html += '    <option value="<?php echo $attribute['attribute_id']; ?>"><?php echo $attribute['name']; ?></option>';
+                  <?php } ?>
+    html += '    </select></td>';
+      ]]></add>
+        </operation>
+  </file>
+<!-- OPTIONS -->
+  <file name="admin/controller/catalog/product.php">
+    <operation>
+            <search position="before"><![CDATA[
+    $this->load->model('catalog/option');
+            ]]></search>
+            <add><![CDATA[
+    $this->load->model('catalog/autocomplete_no_more');
+    $this->data['options'] = $this->model_catalog_autocomplete_no_more->getOptions();
+      ]]></add>
+        </operation>
+  </file>
+  <file name="admin/controller/catalog/option.php" error="log">
+    <operation error="log">
+            <search position="before"><![CDATA[
+  public function autocomplete() {
+            ]]></search>
+            <add><![CDATA[
+  public function getOptionData() {
+
+    if (isset($this->request->post['option_id'])) {
+
+      $this->load->language('catalog/option');
+      $this->load->model('catalog/autocomplete_no_more');
+      $this->load->model('tool/image');
+
+      $option_data = $this->model_catalog_autocomplete_no_more->getOptionData($this->request->post['option_id']);
+
+      $this->response->setOutput(json_encode($option_data));
+    }
+  }
+      ]]></add>
+        </operation>
+  </file>
+  <file name="admin/view/template/catalog/product_form.tpl">
+    <operation>
+            <search position="replace"><![CDATA[
+            <input name="option" value="" style="width: 130px;" />
+            ]]></search>
+            <add><![CDATA[
+              <td><select name="option" id="option" onchange="addOption();">
+                  <option value="0" selected="selected"><?php echo $text_add_option; ?></option>
+                  <?php foreach ($options as $option) { ?>
+                  <option value="<?php echo $option['option_id']; ?>"><?php echo $option['name']; ?></option>
+                  <?php } ?>
+                </select></td>
+      ]]></add>
+        </operation>
+    <operation>
+            <search position="before"><![CDATA[
+<?php echo $footer; ?>
+            ]]></search>
+            <add><![CDATA[
+<script type="text/javascript"><!--
+  function addOption() {
+    el = document.getElementById('option');
+    if(el.value != 0) {
+      option_id = el.value;
+
+      $.ajax({
+        url: 'index.php?route=catalog/option/getOptionData&token=<?php echo $token; ?>',
+        type: 'POST',
+        data: {option_id: option_id},
+        dataType: 'json',
+        success: function(json) {
+
+          html  = '<div id="tab-option-' + option_row + '" class="vtabs-content">';
+          html += ' <input type="hidden" name="product_option[' + option_row + '][product_option_id]" value="" />';
+          html += ' <input type="hidden" name="product_option[' + option_row + '][name]" value="' + json.name + '" />';
+          html += ' <input type="hidden" name="product_option[' + option_row + '][option_id]" value="' + json.option_id + '" />';
+          html += ' <input type="hidden" name="product_option[' + option_row + '][type]" value="' + json.type + '" />';
+          html += ' <table class="form">';
+          html += '   <tr>';
+          html += '   <td><?php echo $entry_required; ?></td>';
+          html += '       <td><select name="product_option[' + option_row + '][required]">';
+          html += '       <option value="1"><?php echo $text_yes; ?></option>';
+          html += '       <option value="0"><?php echo $text_no; ?></option>';
+          html += '     </select></td>';
+          html += '     </tr>';
+
+          if (json.type == 'text') {
+            html += '     <tr>';
+            html += '       <td><?php echo $entry_option_value; ?></td>';
+            html += '       <td><input type="text" name="product_option[' + option_row + '][option_value]" value="" /></td>';
+            html += '     </tr>';
+          }
+
+          if (json.type == 'textarea') {
+            html += '     <tr>';
+            html += '       <td><?php echo $entry_option_value; ?></td>';
+            html += '       <td><textarea name="product_option[' + option_row + '][option_value]" cols="40" rows="5"></textarea></td>';
+            html += '     </tr>';
+          }
+
+          if (json.type == 'file') {
+            html += '     <tr style="display: none;">';
+            html += '       <td><?php echo $entry_option_value; ?></td>';
+            html += '       <td><input type="text" name="product_option[' + option_row + '][option_value]" value="" /></td>';
+            html += '     </tr>';
+          }
+
+          if (json.type == 'date') {
+            html += '     <tr>';
+            html += '       <td><?php echo $entry_option_value; ?></td>';
+            html += '       <td><input type="text" name="product_option[' + option_row + '][option_value]" value="" class="date" /></td>';
+            html += '     </tr>';
+          }
+
+          if (json.type == 'datetime') {
+            html += '     <tr>';
+            html += '       <td><?php echo $entry_option_value; ?></td>';
+            html += '       <td><input type="text" name="product_option[' + option_row + '][option_value]" value="" class="datetime" /></td>';
+            html += '     </tr>';
+          }
+
+          if (json.type == 'time') {
+            html += '     <tr>';
+            html += '       <td><?php echo $entry_option_value; ?></td>';
+            html += '       <td><input type="text" name="product_option[' + option_row + '][option_value]" value="" class="time" /></td>';
+            html += '     </tr>';
+          }
+
+          html += '  </table>';
+
+          if (json.type == 'select' || json.type == 'radio' || json.type == 'checkbox' || json.type == 'image') {
+            html += '  <table id="option-value' + option_row + '" class="list">';
+            html += '    <thead>';
+            html += '      <tr>';
+            html += '        <td class="left"><?php echo $entry_option_value; ?></td>';
+            html += '        <td class="right"><?php echo $entry_quantity; ?></td>';
+            html += '        <td class="left"><?php echo $entry_subtract; ?></td>';
+            html += '        <td class="right"><?php echo $entry_price; ?></td>';
+            html += '        <td class="right"><?php echo $entry_option_points; ?></td>';
+            html += '        <td class="right"><?php echo $entry_weight; ?></td>';
+            html += '        <td></td>';
+            html += '      </tr>';
+            html += '    </thead>';
+            html += '    <tfoot>';
+            html += '      <tr>';
+            html += '        <td colspan="6"></td>';
+            html += '        <td class="left"><a onclick="addOptionValue(' + option_row + ');" class="button"><?php echo $button_add_option_value; ?></a></td>';
+            html += '      </tr>';
+            html += '    </tfoot>';
+            html += '  </table>';
+            html += '  <select id="option-values' + option_row + '" style="display: none;">';
+
+            for (i = 0; i < json.option_value_data.length; i++) {
+              html += '  <option value="' + json.option_value_data[i]['option_value_id'] + '">' + json.option_value_data[i]['name'] + '</option>';
+            }
+
+            html += '  </select>';
+            html += '</div>';
+          }
+
+          $('#tab-option').append(html);
+
+          $('#option-add').before('<a href="#tab-option-' + option_row + '" id="option-' + option_row + '">' + json.name + '&nbsp;<img src="view/image/delete.png" alt="" onclick="$(\'#option-' + option_row + '\').remove(); $(\'#tab-option-' + option_row + '\').remove(); $(\'#vtab-option a:first\').trigger(\'click\'); return false;" /></a>');
+
+          $('#vtab-option a').tabs();
+
+          $('#option-' + option_row).trigger('click');
+
+          $('.date').datepicker({dateFormat: 'yy-mm-dd'});
+          $('.datetime').datetimepicker({
+            dateFormat: 'yy-mm-dd',
+            timeFormat: 'h:m'
+          });
+
+          $('.time').timepicker({timeFormat: 'h:m'});
+
+          $('#option').val('0');
+
+          option_row++;
+
+
+        }
+      });
+
+    }
+  }
+//--></script>
+      ]]></add>
+        </operation>
+  </file>
+<!-- FEATURED PRODUCTS -->
+  <file name="admin/view/template/module/featured.tpl">
+    <operation>
+            <search position="replace" offset="14"><![CDATA[
+            <td><?php echo $entry_product; ?></td>
+            ]]></search>
+            <add><![CDATA[
+            <td><?php echo $entry_product; ?></td>
+            <td><table>
+                <tr>
+                  <td style="padding: 0;" colspan="3"><select id="category" style="margin-bottom: 5px;" onchange="getProducts();">
+                      <?php foreach ($categories as $category) { ?>
+                      <option value="<?php echo $category['category_id']; ?>"><?php echo $category['name']; ?></option>
+                      <?php } ?>
+                    </select></td>
+                </tr>
+                <tr>
+                  <td style="padding: 0;"><select multiple="multiple" id="product" size="10" style="width: 350px;">
+                    </select></td>
+                  <td style="vertical-align: middle;"><input type="button" value="--&gt;" onclick="addFeatured();" />
+                    <br />
+                    <input type="button" value="&lt;--" onclick="removeFeatured();" /></td>
+                  <td style="padding: 0;"><select multiple="multiple" id="featured" size="10" style="width: 350px;">
+          <?php if($products) { ?>
+            <?php foreach($products as $product) { ?>
+            <option value ="<?php echo $product['product_id']; ?>"><?php echo $product['name']; ?></option>
+            <?php } ?>
+          <?php } ?>
+                    </select></td>
+                </tr>
+              </table>
+              <div id="featured_product">
+        <?php if($products) { ?>
+          <?php reset($products); ?>
+          <?php foreach ($products as $featured_product) { ?>
+            <input type="hidden" name="featured_product[]" value="<?php echo $featured_product['product_id']; ?>" />
+          <?php } ?>
+                <?php } ?>
+              </div></td>
+          </tr>
+      ]]></add>
+        </operation>
+    <operation>
+            <search position="before"><![CDATA[
+<?php echo $footer; ?>
+            ]]></search>
+            <add><![CDATA[
+<script type="text/javascript"><!--
+function addFeatured() {
+  $('#product :selected').each(function() {
+    $(this).remove();
+
+    $('#featured option[value=\'' + $(this).attr('value') + '\']').remove();
+
+    $('#featured').append('<option value="' + $(this).attr('value') + '">' + $(this).text() + '</option>');
+
+    $('#featured_product input[value=\'' + $(this).attr('value') + '\']').remove();
+
+    $('#featured_product').append('<input type="hidden" name="featured_product[]" value="' + $(this).attr('value') + '" />');
+  });
+}
+
+function removeFeatured() {
+  $('#featured :selected').each(function() {
+    $(this).remove();
+
+    $('#featured_product input[value=\'' + $(this).attr('value') + '\']').remove();
+  });
+}
+
+function getProducts() {
+  $('#product option').remove();
+
+  <?php if (isset($this->request->get['product_id'])) {?>
+  var product_id = '<?php echo $this->request->get['product_id'] ?>';
+  <?php } else { ?>
+  var product_id = 0;
+  <?php } ?>
+
+  $.ajax({
+    url: 'index.php?route=catalog/product/category&token=<?php echo $token; ?>&category_id=' + $('#category').attr('value'),
+    dataType: 'json',
+    success: function(data) {
+      for (i = 0; i < data.length; i++) {
+        if (data[i]['product_id'] == product_id) { continue; }
+        $('#product').append('<option value="' + data[i]['product_id'] + '">' + data[i]['name'] + ' (' + data[i]['model'] + ') </option>');
+      }
+    }
+  });
+}
+
+function getFeatured() {
+  $('#featured option').remove();
+
+  $.ajax({
+    url: 'index.php?route=catalog/product/related&token=<?php echo $token; ?>',
+    type: 'POST',
+    dataType: 'json',
+    data: $('#featured_product input'),
+    success: function(data) {
+      $('#featured_product input').remove();
+
+      for (i = 0; i < data.length; i++) {
+        $('#featured').append('<option value="' + data[i]['product_id'] + '">' + data[i]['name'] + ' (' + data[i]['model'] + ') </option>');
+
+        $('#featured_product').append('<input type="hidden" name="featured_product[]" value="' + data[i]['product_id'] + '" />');
+      }
+    }
+  });
+}
+
+getProducts();
+//getFeatured();
+//--></script>
+      ]]></add>
+        </operation>
+  </file>
+  <file name="admin/controller/module/featured.php">
+    <operation>
+            <search position="before"><![CDATA[
+    $this->load->model('catalog/product');
+            ]]></search>
+            <add><![CDATA[
+    $this->load->model('catalog/autocomplete_no_more');
+    $this->data['categories'] = $this->model_catalog_autocomplete_no_more->getCategories();
+      ]]></add>
+        </operation>
+    <operation>
+            <search position="before"><![CDATA[
+      $this->model_setting_setting->editSetting('featured', $this->request->post);
+            ]]></search>
+            <add><![CDATA[
+      if(isset($this->request->post['featured_product'])) {
+        $this->request->post['featured_product'] = implode(',', $this->request->post['featured_product']);
+      }
+      ]]></add>
+        </operation>
+  </file>
+
+
+
+  
+</modification>

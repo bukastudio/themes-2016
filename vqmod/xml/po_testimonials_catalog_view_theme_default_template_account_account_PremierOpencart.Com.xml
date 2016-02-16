@@ -1,0 +1,18 @@
+<modification>
+  <id>account.tpl</id>
+  <version>1.0</version>
+  <vqmver>1.0.8</vqmver>
+  <author>PremierOpencart.com</author>
+  <file name="catalog/view/theme/default/template/account/account.tpl">
+    <operation>
+      <search position="after">
+        <![CDATA[<li><a href="<?php echo $wishlist; ?>"><?php echo $text_wishlist; ?></a></li>]]>
+      </search>
+      <add>
+        <![CDATA[
+		<li><a href="<?php echo $testimonial; ?>"><?php echo $text_testimonial; ?></a></li>
+		]]>
+      </add>
+    </operation>
+  </file>
+</modification>

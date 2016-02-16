@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modification>
+	<id>Better Product URLS 1.5.X - 2.X</id>
+	<version>1.2.0</version>
+	<vqmver>2.X</vqmver>
+	<author>Jay Gilford - jay@jaygilford.com</author>
+    
+	<file name="catalog/controller/common/seo_url.php">
+		<operation>
+			<search position="after"><![CDATA[parse_str($url_]]></search>
+			<add><![CDATA[$data = $this->productLink($data);]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[public function index()]]></search>
+			<add><![CDATA[
+	private $productCache = array();
+	private $categoryCache = array();
+	
+	public function productLink($data) {
+		$tracking = isset($data['tracking']) ? $data['tracking'] : '';
+		if(!empty($data['route']) && $data['route'] == 'product/product') {
+			$product_id = empty($data['product_id']) ? 0 : (int) $data['product_id'];
+			$data = array('route' => 'product/product');
+			
+			if($product_id) {
+				if(isset($this->productCache[$product_id])) {
+					$path = $this->productCache[$product_id];
+					if(!empty($path)) {
+						$data['path'] = $path;
+					}
+					
+					$data['product_id'] = $product_id;
+				} else {
+					$store_id = (int) $this->config->get('config_store_id');
+					
+					$query = sprintf('
+						SELECT		`c`.*
+						FROM		`%1$sproduct_to_category` `p2c`
+						INNER JOIN	`%1$scategory_to_store` `c2s`
+						ON			`p2c`.`category_id` = `c2s`.`category_id`
+						INNER JOIN	`%1$scategory` `c`
+						ON			`c`.`category_id` = `p2c`.`category_id`
+						WHERE		`p2c`.`product_id` = %2$s
+						AND			`c2s`.`store_id` = %3$s
+						AND			`c`.`status` = 1
+						ORDER BY	`c`.`sort_order`
+						ASC
+						LIMIT 1
+						',
+						DB_PREFIX,
+						$product_id,
+						$store_id
+					);
+					
+					$result = $this->db->query($query);
+					
+					if($result->num_rows) {
+						$path = array();
+						$path[] = (int) $result->row['category_id'];
+						
+						while((int) $result->row['parent_id'] > 0) {
+							$parent_id = (int) $result->row['parent_id'];
+							$path[] = $parent_id;
+							
+							if(isset($this->categoryCache[$parent_id])) {
+								$result->row['parent_id'] = $this->categoryCache[$parent_id];
+							} else {
+								$query = sprintf(
+									'SELECT `parent_id`
+									FROM `%1$scategory`
+									WHERE `category_id` = %2$s
+									AND `status` = 1',
+									DB_PREFIX,
+									(int) $result->row['parent_id']
+								);
+								
+								$result = $this->db->query($query);
+								if($result->num_rows) {
+									$this->categoryCache[$parent_id] = $result->row['parent_id'];
+								}
+								
+							}
+							
+							if(!$result->rows || in_array((int)$result->row['parent_id'], $path)) {
+								break;
+							}
+						}
+						
+						if(!empty($path)) {
+							$path = implode('_', array_reverse($path));
+							$this->productCache[$product_id] = $path;
+							$data['path'] = $path;
+						} else {
+							$this->productCache[$product_id] = '';
+						}
+						
+						$data['product_id'] = $product_id;
+					}
+				}
+			}
+		}
+		if($tracking) {
+			$data['tracking'] = $tracking;
+		}
+		return $data;
+	}
+			]]></add>
+		</operation>
+		<operation>
+			<search position="after"><![CDATA[if (isset($this->request->get['route'])) {]]></search>
+			<add><![CDATA[				$g = $this->request->get;
+				if($g['route'] == 'product/product') {
+					$temp = $this->productLink($g);
+					if($temp) {
+						unset($temp['route']);
+						$url = $this->url->link('product/product', http_build_query($temp));
+						$parts = parse_url($url);
+						if(!empty($parts['path']) && !empty($_SERVER['REQUEST_URI'])) {
+						
+							if(strtolower(urldecode($_SERVER['REQUEST_URI'])) != strtolower($parts['path'])) {
+								if(strstr($_SERVER['REQUEST_URI'], 'tracking=') === FALSE) {
+									if(version_compare(VERSION, '2.0', '>=')) {
+										$this->response->redirect($url, 301);
+									} else {
+										$this->redirect($url, 301);
+									}
+								}
+							}
+						}
+					}
+				}]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[f (isset($this->request->get['_route_'])) {]]></search>
+			<add><![CDATA[		if(preg_match('~^/index\.php\?~', $_SERVER['REQUEST_URI']) && isset($this->request->get['route']) && $this->request->get['route'] == 'product/product' && isset($this->request->get['product_id'])) {
+			$g = $this->request->get;
+			unset($g['route']);
+			$url = $this->url->link('product/product', http_build_query($g));
+			$parts = parse_url($url);
+			if(empty($parts['query'])) {
+				if(version_compare(VERSION, '2.0', '>=')) {
+					$this->response->redirect($url, 301);
+				} else {
+					$this->redirect($url, 301);
+				}
+			}
+		}]]></add>
+		</operation>
+	</file>
+    
+    <!-- Google Sitemap fix -->
+	<file name="catalog/controller/feed/google_sitemap.php">
+		<operation error="skip">
+			<search position="after"><![CDATA[getProducts(array]]></search>
+			<add><![CDATA[$products = array();]]></add>
+		</operation>
+	</file>
+	<!-- /Google Sitemap fix -->
+    
+    <!-- TEMPLATE
+    
+	<file name="">
+		<operation>
+			<search position="after"><![CDATA[]]></search>
+			<add><![CDATA[]]></add>
+		</operation>
+	</file>
+    
+    -->
+    
+</modification>

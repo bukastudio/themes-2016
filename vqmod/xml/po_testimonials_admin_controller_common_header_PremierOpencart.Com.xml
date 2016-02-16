@@ -1,0 +1,19 @@
+<modification>
+  <id>PO News CMS - PremierOpencart.Com - Admin/Controller/Header</id>
+  <version>1.0</version>
+  <vqmver>1.0.8</vqmver>
+  <author>PremierOpencart.Com</author>
+  <file name="admin/controller/common/header.php">
+    <operation>
+      <search position="after">
+        <![CDATA[$this->data['zone'] = $this->url->link('localisation/zone', 'token=' . $this->session->data['token'], 'SSL');]]>
+      </search>
+      <add>
+        <![CDATA[
+          $this->data['text_po_testimonials'] = $this->language->get('text_po_testimonials');
+          $this->data['po_testimonials'] = $this->url->link('catalog/po_testimonials', 'token=' . $this->session->data['token'], 'SSL');
+		  ]]>
+      </add>
+    </operation>
+  </file>
+</modification>

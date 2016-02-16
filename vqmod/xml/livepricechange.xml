@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modification>
+    <id>Live Price Update OpenCart 1.5.x</id>
+    <version>1.1</version>
+    <author>OpenCart FACTORY</author>
+    <vqmver required="true">2.4.0</vqmver>
+
+    <!-- <file path="catalog/view/theme/*/template/product/product.tpl">
+      <operation>
+        <search position="replace"><![CDATA[<?php echo $price; ?>]]></search>
+        <add><![CDATA[<span id="price_container"><?php echo $price; ?></span>
+    <script type="text/javascript" src="index.php?route=product/livepriceupdate/js&pid=<?php echo $product_id; ?>"></script>]]></add>
+      </operation>
+    </file> -->
+</modification>

@@ -1,0 +1,39 @@
+<modification>
+    <id>Simple Disabling of validation in edit order form</id>
+    <version>1.0.0</version>
+    <vqmver>2.1</vqmver>
+    <author>deeman</author>
+
+    <file name="admin/controller/sale/order.php">
+        <operation>
+            <search position="before"><![CDATA[
+            if ($this->error && !isset($this->error['warning'])) {
+            ]]></search>
+            <add><![CDATA[
+            if ($this->error && !isset($this->error['warning'])) {
+                $this->error = false;
+            }
+            ]]></add>
+        </operation>
+    </file>
+
+    <file name="catalog/controller/checkout/manual.php">
+        <operation>
+            <search position="before"><![CDATA[
+            if (!isset($json['error']['shipping'])) {
+            ]]></search>
+            <add><![CDATA[
+            unset($json['error']['shipping']);
+            ]]></add>
+        </operation>
+        <operation>
+            <search position="before"><![CDATA[
+            if (!isset($json['error']['payment'])) {
+            ]]></search>
+            <add><![CDATA[
+            unset($json['error']['payment']);
+            ]]></add>
+        </operation>
+    </file>
+
+</modification>

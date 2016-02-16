@@ -1,0 +1,65 @@
+<modification>
+  <id>Sale Label</id>
+  <version>1.0</version>
+  <vqmver>2.1.5</vqmver>
+  <author>Bukatoko.com</author>
+
+  <file name="admin/view/template/setting/setting.tpl">
+    <operation>
+      <search position="after" offset="6"><![CDATA[
+        <td><?php echo $entry_icon; ?></td>
+      ]]></search>
+      <add><![CDATA[
+        <tr>
+          <td><?php echo $entry_sale_label; ?></td>
+          <td><div class="image"><img src="<?php echo $sale_label; ?>" alt="" id="thumb-sale-label" />
+              <input type="hidden" name="config_sale_label" value="<?php echo $config_sale_label; ?>" id="sale-label" />
+              <br />
+              <a onclick="image_upload('sale-label', 'thumb-sale-label');"><?php echo $text_browse; ?></a>&nbsp;&nbsp;|&nbsp;&nbsp;<a onclick="$('#thumb-sale-label').attr('src', '<?php echo $no_image; ?>'); $('#sale-label').attr('value', '');"><?php echo $text_clear; ?></a></div></td>
+        </tr>
+      ]]></add>
+    </operation>
+  </file>
+
+  <file name="admin/language/english/setting/setting.php">
+    <operation>
+      <search position="before"><![CDATA[
+        $_['entry_name']                   = 'Store Name:';
+      ]]></search>
+      <add><![CDATA[
+        $_['entry_sale_label']                   = 'Sale Label:<br /><span class="help">Max 50x50 pixel PNG 32bit 72dpi.</span>';
+      ]]></add>
+    </operation>
+  </file>
+
+  <file name="admin/controller/setting/setting.php">
+    <operation>
+      <search position="after"><![CDATA[
+        $this->data['tab_server'] = $this->language->get('tab_server');
+      ]]></search>
+      <add><![CDATA[
+        $this->data['entry_sale_label'] = $this->language->get('entry_sale_label');
+      ]]></add>
+    </operation>
+    <operation>
+      <search position="after" offset="11"><![CDATA[
+        if (isset($this->request->post['config_logo'])) {
+      ]]></search>
+      <add><![CDATA[
+
+        if (isset($this->request->post['config_sale_label'])) {
+          $this->data['config_sale_label'] = $this->request->post['config_sale_label'];
+        } else {
+          $this->data['config_sale_label'] = $this->config->get('config_sale_label');
+        }
+
+        if ($this->config->get('config_sale_label') && file_exists(DIR_IMAGE . $this->config->get('config_sale_label')) && is_file(DIR_IMAGE . $this->config->get('config_sale_label'))) {
+          $this->data['sale_label'] = $this->model_tool_image->resize($this->config->get('config_sale_label'), 100, 100);
+        } else {
+          $this->data['sale_label'] = $this->model_tool_image->resize('no_image.jpg', 100, 100);
+        }
+      ]]></add>
+    </operation>
+  </file>
+
+</modification>

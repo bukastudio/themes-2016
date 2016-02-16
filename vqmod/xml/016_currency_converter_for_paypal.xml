@@ -1,0 +1,18 @@
+<modification>
+	<id>Auto Currency Converter for Paypal</id>
+	<version>1.0</version>
+	<vqmver>2.1.5</vqmver>
+	<author>Bukatoko.com</author>
+
+	<file name="catalog/controller/payment/pp_standard.php">
+		<operation>
+			<search position="after"><![CDATA[
+				$order_info = $this->model_checkout_order->getOrder($this->session->data['order_id']);
+			]]></search>
+			<add><![CDATA[
+				$order_info['currency_code'] = 'USD';
+			]]></add>
+		</operation>
+	</file>
+
+</modification>

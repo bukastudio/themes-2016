@@ -1,0 +1,23 @@
+<modification>
+	<id>Force Free Checkout When Total Zero</id>
+	<version>1.5.6</version>
+	<vqmver>2.4.2</vqmver>
+	<author>vjgaero</author>
+	<file name="catalog/model/total/total.php">
+	<operation error="skip">
+	<search position="before"><![CDATA[$total_data[] = array(]]></search>
+	<add><![CDATA[$this->session->data['carttotal'] = max(0, $total); ]]></add>
+	</operation>
+	</file>
+	<file name="catalog/controller/checkout/payment_method.php">
+	<operation error="skip">
+	<search position="before" index="2"><![CDATA[foreach ($results as $result) {]]></search>
+	<add>
+	<![CDATA[if(isset($this->session->data['carttotal']) &&  $this->session->data['carttotal'] ==  0){
+	foreach ($results as $key => $value) {if($value['code'] != "free_checkout") {unset($results[$key]);}}
+
+	$this->session->data['payment_method']['code'] = 'free_checkout';} ]]>
+    </add>
+	</operation>
+	</file>
+</modification>

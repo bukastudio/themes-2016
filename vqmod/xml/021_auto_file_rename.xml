@@ -1,0 +1,76 @@
+<!-- Created using vQmod XML Generator by UKSB - http://uksb.github.com/vqgen/ //-->
+<modification>
+	<id><![CDATA[Web-safe Image Filenames]]></id>
+	<version><![CDATA[1.0.0]]></version>
+	<vqmver><![CDATA[2.5.0]]></vqmver>
+	<author><![CDATA[Kang Oedin [facebook.com/kangoedin]]]></author>
+	<file name="admin/controller/common/filemanager.php">
+		<operation info="Sanitize uploaded image filename to web-safe">
+			<search position="replace" error="skip"><![CDATA[if (@move_uploaded_file($this->request->files['image']['tmp_name'], $directory . '/' . $filename)) {]]></search>
+			<add><![CDATA[/**
+ * Do not use any of these common illegal characters/symbols for file names:
+ *
+ * # pound         < left angle bracket       $ dollar sign        + plus sign
+ * % percent       > right angle bracket      ! exclamation point  ` backtick
+ * & ampersand     * asterisk                 ‘ single quotes      | pipe
+ * { left bracket  ? question mark            " double quotes      = equal sign
+ * } right bracket / forward slash            : colon
+ * \ back slash      blank spaces             @ at sign
+ *
+ * Also, keep these rules in mind:
+ * - Don't start or end your filename with a space, period, hyphen, or underline.
+ * - Keep your filenames to a reasonable length and be sure they are under 31 characters.
+ * - Most operating systems are case sensitive; always use lowercase.
+ * - Avoid using spaces and underscores; use a hyphen instead.
+ *
+ * Source: http://www.mtu.edu/umc/services/web/cms/characters-avoid/
+ **/
+
+// Extract file extension for later use.
+$ext = pathinfo($filename, PATHINFO_EXTENSION);
+
+// Extract filename only.
+$filename = substr($filename, 0, strlen($filename) - strlen($ext) - 1);
+
+// Replace any character other than a-z, A-Z, 0-9 with hyphen (-).
+$filename = preg_replace('/[^A-Za-z0-9\-]/', '-', $filename);
+$filename = strtolower($filename);
+
+// If filename with extension is longer than 31 characters, trim.
+if(strlen($filename) + strlen($ext) > 31){
+    $filename = substr($filename, 0, 31 - strlen($ext));
+}
+
+// Iterate to strip off the leading and trailing hyphen (-).
+do {
+    if ($filename[0] === '-')
+    {
+        $filename = substr($filename, 1);
+    }
+    if($filename[strlen($filename) - 1] === '-'){
+        $filename = substr($filename, 0, strlen($filename) - 1);
+    }
+    if(empty($filename)){
+        break;
+    }
+}
+while ($filename[0] === '-');
+
+// If after iteration, the filename (without its extension) is an empty string,
+// create new filename with random numbers.
+if (empty($filename)){
+    for($i = 0; $i <= 31 - strlen($ext) - 2; $i++)
+    $filename .= rand(0, 9);
+}
+
+// Let's rejoin filename with its extension.
+$filename .= '.' . $ext;
+
+/**********************************************************************************/
+/* End of modification
+/**********************************************************************************/
+
+if (@move_uploaded_file($this->request->files['image']['tmp_name'], $directory . '/' . $filename)) {]]></add>
+		</operation>
+	</file>
+</modification>

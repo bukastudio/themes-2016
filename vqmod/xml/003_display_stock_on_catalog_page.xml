@@ -1,0 +1,68 @@
+<modification>
+  <id>Display Stock on Catalog Page</id>
+  <version>1.0</version>
+  <vqmver>2.1.5</vqmver>
+  <author>Bukatoko.com</author>
+
+  <!-- /VIEW -->
+  <file name="admin/view/template/setting/setting.tpl">
+    <operation>
+      <search position="before" offset="1"><![CDATA[
+        <td><?php echo $entry_stock_display; ?></td>
+      ]]></search>
+      <add><![CDATA[
+        <tr>
+          <td><?php echo $entry_stock_catalog_display; ?></td>
+          <td><?php if ($config_stock_catalog_display) { ?>
+            <input type="radio" name="config_stock_catalog_display" value="1" checked="checked" />
+            <?php echo $text_yes; ?>
+            <input type="radio" name="config_stock_catalog_display" value="0" />
+            <?php echo $text_no; ?>
+            <?php } else { ?>
+            <input type="radio" name="config_stock_catalog_display" value="1" />
+            <?php echo $text_yes; ?>
+            <input type="radio" name="config_stock_catalog_display" value="0" checked="checked" />
+            <?php echo $text_no; ?>
+            <?php } ?></td>
+        </tr>
+      ]]></add>
+    </operation>
+  </file>
+
+  <!-- /LANGUAGE -->
+  <file name="admin/language/english/setting/setting.php">
+    <operation>
+      <search position="after"><![CDATA[
+        $_['error_encryption']             = 'Encryption must be between 3 and 32 characters!';
+      ]]></search>
+      <add><![CDATA[
+        $_['entry_stock_catalog_display']          = 'Display Catalog Stock:<br /><span class="help">Display stock quantity on the catalog page.</span>';
+      ]]></add>
+    </operation>
+  </file>
+
+  <!-- /CONTROLLER -->
+  <file name="admin/controller/setting/setting.php">
+    <operation>
+      <search position="after"><![CDATA[
+        $this->data['tab_server'] = $this->language->get('tab_server');
+      ]]></search>
+      <add><![CDATA[
+        $this->data['entry_stock_catalog_display'] = $this->language->get('entry_stock_catalog_display');
+      ]]></add>
+    </operation>
+    <operation>
+      <search position="before"><![CDATA[
+        if (isset($this->request->post['config_stock_display'])) {
+      ]]></search>
+      <add><![CDATA[
+        if (isset($this->request->post['config_stock_catalog_display'])) {
+          $this->data['config_stock_catalog_display'] = $this->request->post['config_stock_catalog_display'];
+        } else {
+          $this->data['config_stock_catalog_display'] = $this->config->get('config_stock_catalog_display');
+        }
+      ]]></add>
+    </operation>
+  </file>
+
+</modification>

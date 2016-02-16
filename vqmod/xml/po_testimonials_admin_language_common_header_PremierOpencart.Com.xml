@@ -1,0 +1,18 @@
+<modification>
+  <id>PO News CMS - PremierOpencart.Com - Admin/Language/Header</id>
+  <version>1.0</version>
+  <vqmver>1.0.8</vqmver>
+  <author>PremierOpencart.Com</author>
+  <file name="admin/language/english/common/header.php">
+    <operation>
+      <search position="after">
+        <![CDATA[$_['text_zone']                        = 'Zones';]]>
+      </search>
+      <add>
+        <![CDATA[
+		$_['text_po_testimonials']                     = 'Customer Testimonials';
+		]]>
+      </add>
+    </operation>
+  </file>
+</modification>

@@ -1,0 +1,150 @@
+<modification>
+  <id>Hide when Free Shipping is available</id>
+  <version>1.0</version>
+  <vqmver>2.1.5</vqmver>
+  <author>Bukatoko.com</author>
+
+  <file error="skip" name="catalog/model/shipping/auspost.php">
+    <operation>
+      <search position="before"><![CDATA[
+        if ($status) {
+      ]]></search>
+      <add><![CDATA[
+        if ((float)$this->cart->getTotal() >= $this->config->get('free_total')) {
+           $status = false;
+        }
+      ]]></add>
+    </operation>
+   </file>
+
+   <file error="skip" name="catalog/model/shipping/citylink.php">
+    <operation>
+      <search position="before"><![CDATA[
+        if ($status) {
+      ]]></search>
+      <add><![CDATA[
+        if ((float)$this->cart->getTotal() >= $this->config->get('free_total')) {
+           $status = false;
+        }
+      ]]></add>
+    </operation>
+   </file>
+
+   <file error="skip" name="catalog/model/shipping/fedex.php">
+    <operation>
+      <search position="before"><![CDATA[
+        if ($status) {
+      ]]></search>
+      <add><![CDATA[
+        if ((float)$this->cart->getTotal() >= $this->config->get('free_total')) {
+           $status = false;
+        }
+      ]]></add>
+    </operation>
+   </file>
+
+  <file error="skip" name="catalog/model/shipping/flat.php">
+    <operation>
+      <search position="before"><![CDATA[
+        if ($status) {
+      ]]></search>
+      <add><![CDATA[
+        if ((float)$this->cart->getTotal() >= $this->config->get('free_total')) {
+           $status = false;
+        }
+      ]]></add>
+    </operation>
+   </file>
+
+   <file error="skip" name="catalog/model/shipping/item.php">
+    <operation>
+      <search position="before"><![CDATA[
+        if ($status) {
+      ]]></search>
+      <add><![CDATA[
+        if ((float)$this->cart->getTotal() >= $this->config->get('free_total')) {
+           $status = false;
+        }
+      ]]></add>
+    </operation>
+   </file>
+
+   <file error="skip" name="catalog/model/shipping/parcelforce_48.php">
+    <operation>
+      <search position="before"><![CDATA[
+        if ($status) {
+      ]]></search>
+      <add><![CDATA[
+        if ((float)$this->cart->getTotal() >= $this->config->get('free_total')) {
+           $status = false;
+        }
+      ]]></add>
+    </operation>
+   </file>
+
+   <file error="skip" name="catalog/model/shipping/pickup.php">
+    <operation>
+      <search position="before"><![CDATA[
+        if ($status) {
+      ]]></search>
+      <add><![CDATA[
+        if ((float)$this->cart->getTotal() >= $this->config->get('free_total')) {
+           $status = false;
+        }
+      ]]></add>
+    </operation>
+   </file>
+
+   <file error="skip" name="catalog/model/shipping/royal_mail.php">
+    <operation>
+      <search position="before"><![CDATA[
+        if ($status) {
+      ]]></search>
+      <add><![CDATA[
+        if ((float)$this->cart->getTotal() >= $this->config->get('free_total')) {
+           $status = false;
+        }
+      ]]></add>
+    </operation>
+   </file>
+
+   <file error="skip" name="catalog/model/shipping/ups.php">
+    <operation>
+      <search position="before"><![CDATA[
+        if ($status) {
+      ]]></search>
+      <add><![CDATA[
+        if ((float)$this->cart->getTotal() >= $this->config->get('free_total')) {
+           $status = false;
+        }
+      ]]></add>
+    </operation>
+   </file>
+
+   <file error="skip" name="catalog/model/shipping/usps.php">
+    <operation>
+      <search position="before"><![CDATA[
+        if ($status) {
+      ]]></search>
+      <add><![CDATA[
+        if ((float)$this->cart->getTotal() >= $this->config->get('free_total')) {
+           $status = false;
+        }
+      ]]></add>
+    </operation>
+   </file>
+
+   <file error="skip" name="catalog/model/shipping/weight.php">
+    <operation>
+      <search position="before"><![CDATA[
+        if ($status) {
+      ]]></search>
+      <add><![CDATA[
+        if ((float)$this->cart->getTotal() >= $this->config->get('free_total')) {
+           $status = false;
+        }
+      ]]></add>
+    </operation>
+   </file>
+
+</modification>

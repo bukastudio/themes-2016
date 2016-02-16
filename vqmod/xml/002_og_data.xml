@@ -1,0 +1,71 @@
+<modification>
+	<id>Facebook og:image fix</id>
+	<version>1.0</version>
+	<vqmver>1.0.8</vqmver>
+	<author>www.bewebdesign.be</author>
+
+	<file name="catalog/controller/common/header.php">
+		<operation>
+			<search position="after"><![CDATA[$this->load->model('catalog/product');]]></search>
+			<add><![CDATA[
+
+			// EDIT YOUR DATA BELOW
+			//
+			$default_title = 'ENTER YOUR DEFAULT TITLE';
+			$default_descr = 'ENTER YOUR DEFAULT DESCRIPTION';
+			$default_image = 'ENTER YOUR DEFAULT IMAGE FULL URL';
+			// Default image SHOULD BE:
+			// Width: 50 - 130px
+			// Height: 50 - 110px
+			// Aspect ratio - not more than 3.0
+			// An image 100x100 will work best
+
+			$descr_cut_length = 300; // cut description at N-th symbol
+			//
+			// STOP EDITING
+
+
+			if (isset($this->request->get['product_id'])) {
+				$product_id = $this->request->get['product_id'];
+				$product_info = $this->model_catalog_product->getProduct($product_id);
+
+				// IMAGE
+				$this->load->model('tool/image');
+				if ($product_info['image']) {
+					$this->data['og_image'] = str_replace( ' ', '%20', $this->model_tool_image->resize($product_info['image'],500,500) );
+				} else {
+					$this->data['og_image'] = $default_image;
+				}
+
+				// TITLE
+				if ($product_info['name']) {
+					$this->data['og_title'] = $product_info['name'];
+				} else {
+					$this->data['og_title'] =  $default_title;
+				}
+
+				// DESCRIPTION
+				if ($product_info['description']) {
+					$descr = strip_tags( htmlspecialchars_decode( $product_info['description'] ) );
+
+					$order = array("\r\n", "\n", "\r");
+					$descr = str_replace( $order, null, trim($descr) );
+					if ( strlen($descr) > $descr_cut_length ){
+						$descr = substr( $descr , 0, $descr_cut_length );
+						$descr .= '...';
+					}
+					$this->data['og_descr'] = $descr;
+				} else {
+					$this->data['og_descr'] =  $default_descr;
+				}
+
+			} else {
+				$this->data['og_image'] = '';
+				$this->data['og_title'] =  '';
+				$this->data['og_descr'] = '';
+			}
+
+    ]]></add>
+       </operation>
+    </file>
+</modification>

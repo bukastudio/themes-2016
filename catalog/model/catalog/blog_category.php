@@ -1,0 +1,50 @@
+<?php
+/*------------------------------------------------------------------------
+# Advanced Blog Extension - Module for OpenCart 1.5.1.x
+# ------------------------------------------------------------------------
+# Copyright (C) 2011 OpenCartSoft.com. All Rights Reserved.
+# @license - Copyrighted Commercial Software
+# Author: www.OpenCartSoft.com
+# Websites:  http://www.opencartsoft.com -  Email: admin@opencartsoft.com
+# This file may not be redistributed in whole or significant part.
+-------------------------------------------------------------------------*/
+
+class ModelCatalogBlogCategory extends Model {
+	public function getBlogCategory($blog_category_id) {
+		$query = $this->db->query("SELECT DISTINCT * FROM " . DB_PREFIX . "blog_category c LEFT JOIN " . DB_PREFIX . "blog_category_description cd ON (c.blog_category_id = cd.blog_category_id) LEFT JOIN " . DB_PREFIX . "blog_category_to_store c2s ON (c.blog_category_id = c2s.blog_category_id) WHERE c.blog_category_id = '" . (int)$blog_category_id . "' AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "' AND c2s.store_id = '" . (int)$this->config->get('config_store_id') . "' AND c.status = '1'");
+
+		return $query->row;
+	}
+
+	public function getBlogCategories($parent_id = 0) {
+		$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "blog_category c LEFT JOIN " . DB_PREFIX . "blog_category_description cd ON (c.blog_category_id = cd.blog_category_id) LEFT JOIN " . DB_PREFIX . "blog_category_to_store c2s ON (c.blog_category_id = c2s.blog_category_id) WHERE c.parent_id = '" . (int)$parent_id . "' AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "' AND c2s.store_id = '" . (int)$this->config->get('config_store_id') . "'  AND c.status = '1' ORDER BY c.sort_order, LCASE(cd.name)");
+
+		return $query->rows;
+	}
+
+	public function getBlogCategoriesByParentId($blog_category_id) {
+		$blog_category_data = array();
+
+		$blog_category_data[] = $blog_category_id;
+
+		$blog_category_query = $this->db->query("SELECT blog_category_id FROM " . DB_PREFIX . "blog_category WHERE parent_id = '" . (int)$blog_category_id . "'");
+
+		foreach ($blog_category_query->rows as $blog_category) {
+			$children = $this->getBlogCategoriesByParentId($blog_category['blog_category_id']);
+
+			if ($children) {
+				$blog_category_data = array_merge($children, $blog_category_data);
+			}
+		}
+
+		return $blog_category_data;
+	}
+
+	public function getTotalBlogCategoriesByCategoryId($parent_id = 0) {
+		$query = $this->db->query("SELECT COUNT(*) AS total FROM " . DB_PREFIX . "blog_category c LEFT JOIN " . DB_PREFIX . "blog_category_to_store c2s ON (c.blog_category_id = c2s.blog_category_id) WHERE c.parent_id = '" . (int)$parent_id . "' AND c2s.store_id = '" . (int)$this->config->get('config_store_id') . "' AND c.status = '1'");
+
+		return $query->row['total'];
+	}
+
+}
+?>

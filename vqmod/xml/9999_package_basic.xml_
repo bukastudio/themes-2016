@@ -1,0 +1,21 @@
+<modification>
+  <id>Basic Package</id>
+  <version>1.0</version>
+  <vqmver>2.1.5</vqmver>
+  <author>Bukatoko.com</author>
+
+  <file name="admin/view/template/setting/setting.tpl">
+
+    <!-- /Disable Zopim Live Chat -->
+    <operation>
+      <search position="replace" offset="5"><![CDATA[
+        <h2>Live Chat</h2>
+      ]]></search>
+      <add><![CDATA[
+        <h2>Live Chat</h2>
+          <table class="form">
+      ]]></add>
+    </operation>
+  </file>
+
+</modification>

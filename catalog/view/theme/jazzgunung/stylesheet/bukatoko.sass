@@ -1,0 +1,144 @@
+/**
+ *	 Bukatoko™ SASS Framework
+ * Copyright ® 2016. All right reserved
+ * www.bukatoko.com
+ */
+
+@import "_framework"
+
+// Javascript Styles
+@import "Javascripts/flexslider"
+@import "Javascripts/slick"
+@import "Javascripts/colorbox"
+
+// Themes
+@import "themes/default/_settings"
+@import "themes/default/_slot.header"
+@import "themes/default/_slot.content"
+@import "themes/default/_slot.footer"
+
+@import "themes/default/_elements.header"
+@import "themes/default/_elements.content"
+@import "themes/default/_elements.footer"
+
+@import "themes/default/_category.category-header"
+@import "themes/default/_category.filterbar"
+@import "themes/default/_category.catalog"
+@import "themes/default/_category.pagination"
+
+@import "themes/default/_product.page"
+
+@import "themes/default/_modules"
+
+#ticket--info
+  //background-color: rgba(204, 204, 0, 0.2)
+  .left
+    //background-color: rgba(0, 102, 255, 0.2)
+    @include column(4,4,3,8,6)
+  .right
+    //background-color: rgba(255, 153, 0, 0.2)
+    @include column(16,12,9,8,6)
+
+
+
+
+
+.option--radio
+  //background-color: rgba(204, 204, 0, 0.2)
+  list-style: none
+  margin: 0
+  padding: 0
+  @include clearfix
+  margin-bottom: 40px
+  //text-align: center
+
+  > label
+    display: block
+    text-align: left
+
+  .radio
+    //display: inline-block
+    //margin-left: -4px
+    //float: left
+    &:first-child
+      margin-left: 0
+    label
+
+      input
+        display: none
+        & + span
+          display: block
+          cursor: pointer
+          width: 16px
+          height: 16px
+          padding: 0
+          line-height: 17px
+          font-size: 7px
+          border: 1px solid #8A8D94
+          text-align: center
+          margin: 1px
+          @include rounded(1px)
+
+          @include mq(desktop)
+            width: 20px
+            height: 20px
+            line-height: 20px
+            font-size: 9px
+        &:checked + span
+          border: 1px solid #404245
+          background-color: #404245
+          color: white
+    &.disabled
+      label
+        input + span
+          background-color: #ddd
+          border-color: #ccc
+          color: #aaa
+
+
+
+#ticket--order
+  //background-color: rgba(102, 51, 255, 0.2)
+
+  #option-275,
+  #option-276
+    &.option--radio
+
+      .radio
+        display: block
+        float: left
+
+        &:nth-of-type(36),
+        &:nth-of-type(95),
+        &:nth-of-type(156),
+        &:nth-of-type(220),
+        &:nth-of-type(285),
+        &:nth-of-type(350),
+        &:nth-of-type(415)
+          @include fix-row
+        &:nth-of-type(1)
+          margin-left: 270px
+        &:nth-of-type(36)
+          margin-left: 55px
+        &:nth-of-type(95)
+          margin-left: 37px
+
+        @include mq(desktop)
+          &:nth-of-type(36),
+          &:nth-of-type(95),
+          &:nth-of-type(156),
+          &:nth-of-type(220),
+          &:nth-of-type(285),
+          &:nth-of-type(350),
+          &:nth-of-type(415)
+            @include reset-row
+            margin-left: 22px
+
+          &:nth-of-type(1)
+            margin-left: 0
+
+
+
+
+#ticket--cart
+  //background-color: rgba(153, 102, 0, 0.2)

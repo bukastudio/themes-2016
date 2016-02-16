@@ -1,0 +1,33 @@
+<modification>
+    <id>Theme Switcher</id>
+      <version>1.0</version>
+		   <vqmver>2.3.0</vqmver>
+       <author>www.best-byte.com</author>		
+<file name="system/engine/controller.php">
+    <operation>
+			<search position="before"><![CDATA[if (file_exists(DIR_TEMPLATE . $this->template)) {]]></search>
+			<add><![CDATA[
+$filename = $this->template;
+if (isset($this->request->get['theme']) && $this->request->get['theme'] || isset($this->session->data['theme'])) {
+	$directories = glob(DIR_APPLICATION . 'view/theme/*', GLOB_ONLYDIR);
+	$this->session->data['theme'] = (isset($this->request->get['theme']) && $this->request->get['theme']) ? $this->request->get['theme'] : $this->session->data['theme'];
+	foreach ($directories as $directory) {
+		if ($this->session->data['theme'] == basename($directory)) {
+			$tmp = explode('/', $filename);
+			$tmp[0] = $this->session->data['theme'];
+			$filename2 = implode('/', $tmp);
+			$file2 = DIR_TEMPLATE . $filename2;
+			if (file_exists($file2)) {
+				$filename = $filename2;
+				$this->data['template'] = $tmp[0];
+			}
+			break; 
+		}
+	}
+}
+
+$this->template = $filename;
+   ]]></add>
+	</operation>
+</file>	
+</modification>

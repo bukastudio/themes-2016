@@ -1,0 +1,252 @@
+<modification>
+	<id><![CDATA[Currency fixes]]></id>
+	<version><![CDATA[1.0.0]]></version>
+	<vqmver><![CDATA[2.1.5]]></vqmver>
+	<author><![CDATA[The Krotek]]></author>
+	<file name="system/library/currency.php">
+		<operation>
+			<search position="replace"><![CDATA[$this->set($this->config->get('config_currency'));]]></search>
+			<add><![CDATA[
+
+  			$this->set($this->config->get('config_store_currency'));
+
+			]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[public function getId($currency = '') {]]></search>
+			<add><![CDATA[
+
+  			public function getCodeById($id) {
+				foreach ($this->currencies as $code => $currency) {
+					if ($currency['currency_id'] == $id) return $code;
+				}
+  			}
+
+			]]></add>
+		</operation>
+	</file>
+	<file name="admin/model/localisation/currency.php">
+		<operation>
+			<search position="before"><![CDATA[function addCurrency($data) {]]></search>
+			<add><![CDATA[
+
+			public function resetValues()
+			{
+				$this->db->query("UPDATE ".DB_PREFIX."currency SET value = ''");
+				$this->db->query("UPDATE ".DB_PREFIX."currency SET value = '1.00000' WHERE code = '".$this->db->escape($this->config->get('config_currency'))."'");
+			}
+
+			]]></add>
+		</operation>
+	</file>
+	<file name="admin/controller/localisation/currency.php">
+		<operation>
+			<search position="after" index="1"><![CDATA[$this->data['heading_title'] = $this->language->get('heading_title');]]></search>
+			<add><![CDATA[
+
+			$this->data['button_update'] = $this->language->get('button_update');
+			$this->data['update_values'] = $this->url->link('localisation/currency/updatevalues', 'token='.$this->session->data['token'].$url, 'SSL');
+
+			]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[function update() {]]></search>
+			<add><![CDATA[
+
+			public function updateValues()
+			{
+				$this->language->load('localisation/currency');
+
+				$this->load->model('localisation/currency');
+				$this->model_localisation_currency->updateCurrencies(true);
+
+				$this->session->data['success'] = $this->language->get('text_update_success');
+
+				$url = '';
+
+				if (isset($this->request->get['sort'])) $url .= '&sort='.$this->request->get['sort'];
+				if (isset($this->request->get['order'])) $url .= '&order='.$this->request->get['order'];
+				if (isset($this->request->get['page'])) $url .= '&page='.$this->request->get['page'];
+
+				$this->redirect($this->url->link('localisation/currency', 'token='.$this->session->data['token'].$url, 'SSL'));
+			}
+
+			]]></add>
+		</operation>
+	</file>
+	<file name="admin/controller/setting/setting.php">
+		<operation>
+			<search position="after"><![CDATA[$this->model_setting_setting->editSetting('config', $this->request->post);]]></search>
+			<add><![CDATA[
+
+			$this->config->set('config_currency', $this->request->post['config_currency']);
+
+			$this->load->model('localisation/currency');
+			$this->model_localisation_currency->resetValues();
+			$this->model_localisation_currency->updateCurrencies(true);
+
+			]]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA[$this->redirect($this->url->link('setting/store', 'token=' . $this->session->data['token'], 'SSL'));]]></search>
+			<add><![CDATA[
+
+			if ($this->request->post['apply'] == '1') {
+				$this->redirect($this->url->link('setting/setting', 'token='.$this->session->data['token'], 'SSL'));
+			} else {
+				$this->redirect($this->url->link('setting/store', 'token='.$this->session->data['token'], 'SSL'));
+			}
+
+			]]></add>
+		</operation>
+		<operation>
+			<search position="after"><![CDATA[$this->data['entry_currency'] = $this->language->get('entry_currency');]]></search>
+			<add><![CDATA[
+
+			$this->data['entry_store_currency'] = $this->language->get('entry_store_currency');
+			$this->data['button_apply'] = $this->language->get('button_apply');
+
+			if (isset($this->request->post['config_store_currency'])) {
+				$this->data['config_store_currency'] = $this->request->post['config_store_currency'];
+			} else {
+				$this->data['config_store_currency'] = $this->config->get('config_store_currency');
+			}
+
+			]]></add>
+		</operation>
+	</file>
+	<file name="admin/controller/sale/order.php">
+		<operation>
+			<search position="before"><![CDATA[if (isset($this->request->post['customer'])) {]]></search>
+			<add><![CDATA[
+
+			$this->data['entry_update_currency'] = $this->language->get('entry_update_currency');
+
+			if (isset($this->request->post['update_currency'])) {
+				$this->data['update_currency'] = $this->request->post['update_currency'];
+			} elseif ($this->config->get('update_currency')) {
+				$this->data['update_currency'] = $this->config->get('update_currency');
+			} else {
+				$this->data['update_currency'] = 0;
+			}
+
+			if (isset($this->request->post['currency_id'])) {
+				$this->data['currency_id'] = $this->request->post['currency_id'];
+			} elseif (!empty($order_info)) {
+				$this->data['currency_id'] = $order_info['currency_id'];
+			} else {
+				$this->data['currency_id'] = '';
+			}
+
+			]]></add>
+		</operation>
+	</file>
+	<file name="admin/model/sale/order.php">
+		<operation>
+			<search position="after"><![CDATA[public function editOrder($order_id, $data) {]]></search>
+			<add><![CDATA[
+
+			if ($data['update_currency'] && $data['currency_id']) {
+				$currency = $this->currency->getCodeById($data['currency_id']);
+				$value = $this->currency->getValue($currency);
+				$this->db->query("UPDATE `".DB_PREFIX."order` SET currency_value = '".(float)$value."' WHERE order_id = '".(int)$order_id."'");
+			}
+
+			]]></add>
+		</operation>
+	</file>
+	<file name="admin/view/template/localisation/currency_list.tpl">
+		<operation error="skip">
+			<search position="replace"><![CDATA[<div class="buttons">]]></search>
+			<add><![CDATA[
+
+			<div class="buttons"><a href="<?php echo $update_values; ?>" class="button"><?php echo $button_update; ?></a>
+
+			]]></add>
+		</operation>
+	</file>
+	<file name="admin/view/template/setting/setting.tpl">
+		<operation error="skip">
+			<search position="before"><![CDATA[<div id="tab-general">]]></search>
+			<add><![CDATA[
+
+			<input type="hidden" name="apply" id="apply" value="0">
+
+			]]></add>
+		</operation>
+		<operation error="skip">
+			<search position="replace"><![CDATA[<div class="buttons">]]></search>
+			<add><![CDATA[
+
+			<div class="buttons"><a onclick="$('#apply').attr('value', '1'); $('#form').submit();" class="button"><?php echo $button_apply; ?></a>
+
+			]]></add>
+		</operation>
+		<operation error="skip">
+			<search position="before" offset="1"><![CDATA[<td><?php echo $entry_currency_auto; ?></td>]]></search>
+			<add><![CDATA[
+
+            <tr>
+              <td><?php echo $entry_store_currency; ?></td>
+              <td><select name="config_store_currency">
+                  <?php foreach ($currencies as $currency) { ?>
+                  <?php if ($currency['code'] == $config_store_currency) { ?>
+                  <option value="<?php echo $currency['code']; ?>" selected="selected"><?php echo $currency['title']; ?></option>
+                  <?php } else { ?>
+                  <option value="<?php echo $currency['code']; ?>"><?php echo $currency['title']; ?></option>
+                  <?php } ?>
+                  <?php } ?>
+                </select></td>
+            </tr>
+
+			]]></add>
+		</operation>
+	</file>
+	<file name="admin/view/template/sale/order_form.tpl">
+		<operation error="skip">
+			<search position="after" offset="1"><![CDATA[<input type="hidden" name="affiliate_id" value="<?php echo $affiliate_id; ?>" /></td>]]></search>
+			<add><![CDATA[
+
+              <tr>
+                <td class="left"><?php echo $entry_update_currency; ?></td>
+                <td class="left">
+                	<input type="checkbox" name="update_currency" <?php echo ($update_currency ? 'checked' : '') ?> />
+                	<input type="hidden" name="currency_id" value="<?php echo $currency_id; ?>" /></td>
+              </tr>
+
+			]]></add>
+		</operation>
+	</file>
+	<file name="admin/language/english/localisation/currency.php">
+		<operation error="skip">
+			<search position="after"><![CDATA[// Text]]></search>
+			<add><![CDATA[
+
+			$_['button_update'] = 'Update values';
+			$_['text_update_success'] = 'Currency values has been successfully updated.';
+
+			]]></add>
+		</operation>
+	</file>
+	<file name="admin/language/english/setting/setting.php">
+		<operation error="skip">
+			<search position="after"><![CDATA[// Text]]></search>
+			<add><![CDATA[
+
+			$_['entry_store_currency'] = 'Store currency<span class="help">Main currency of your store frontend. May differ from default currency.</span>';
+			$_['button_apply'] = 'Apply';
+
+			]]></add>
+		</operation>
+	</file>
+	<file name="admin/language/english/sale/order.php">
+		<operation error="skip">
+			<search position="after"><![CDATA[// Text]]></search>
+			<add><![CDATA[
+
+			$_['entry_update_currency'] = 'Update currency value<span class="help">Order currency value will be updated on SAVE.</span>';
+
+			]]></add>
+		</operation>
+	</file>
+</modification>

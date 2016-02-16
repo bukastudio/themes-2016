@@ -1,0 +1,18 @@
+<modification>
+  <id>Admin Common Header</id>
+  <version>1.0</version>
+  <vqmver>1.0.8</vqmver>
+  <author>PremierOpencart</author>
+  <file name="admin/view/template/common/header.tpl">
+    <operation>
+      <search position="after">
+        <![CDATA[<li><a href="<?php echo $information; ?>"><?php echo $text_information; ?></a></li>]]>
+      </search>
+      <add>
+        <![CDATA[
+		<li><a href="<?php echo $po_testimonials; ?>"><?php echo $text_po_testimonials; ?></a></li>
+		]]>
+      </add>
+    </operation>
+  </file>
+</modification>

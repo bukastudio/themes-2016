@@ -1,0 +1,2868 @@
+<modification>
+<id><![CDATA[Option To Product]]></id>
+<version><![CDATA[4.0]]></version>
+<opencart><![CDATA[1.5.6.X]]></opencart>
+<vqmver><![CDATA[2.5.1]]></vqmver>
+<author><![CDATA[Raul Marosan]]></author>
+<file name="admin/model/catalog/product.php">
+<operation>
+<search position="replace"><![CDATA[
+od.language_id = '" . (int)$this->config->get('config_language_id') . "'");
+]]></search>
+<add trim="true"><![CDATA[
+od.language_id = '" . (int)$this->config->get('config_language_id') . "' ORDER BY o.sort_order");
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+public function addProduct($data) {
+]]></search>
+<add trim="true"><![CDATA[
+public function checkOtp($product_id) {
+	$otp_query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "otp_option_value` WHERE product_id = '" . (int)$product_id . "' LIMIT 1");
+	return $otp_query->num_rows;
+}
+public function getOtpOptions($product_id) {
+	$otp_data = array();
+	$otp_option_data = array();
+	$otp_query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "otp_option_value` WHERE product_id = '" . (int)$product_id . "' LIMIT 1");
+	if ($otp_query->num_rows) {
+		$options = $otp_query->row;
+		if ($options['parent_option_id'] != 0) { $otp_options[] = $options['parent_option_id']; }
+		if ($options['child_option_id'] != 0) { $otp_options[] = $options['child_option_id']; }
+		if ($options['grandchild_option_id'] != 0) { $otp_options[] = $options['grandchild_option_id']; }
+		$this->load->model('catalog/option');
+		foreach ($otp_options as $otp_option_id) {
+			$otp_option_query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "option` o INNER JOIN `" . DB_PREFIX . "option_description` od ON (o.option_id = od.option_id) WHERE o.option_id = '$otp_option_id' AND od.language_id = '" . (int)$this->config->get('config_language_id') . "' LIMIT 1");
+			$otp_option = $otp_option_query->row;
+			$option_values = $this->model_catalog_option->getOptionValues($otp_option_id);
+			$otp_option_data[] = array(
+				'option_id'            => $otp_option_id,
+				'name'                 => $otp_option['name'],
+				'option_values'        => $option_values
+			);
+		}
+	}
+	$otp_option_value_data = array();
+	$otp_option_value_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "otp_option_value ov INNER JOIN " . DB_PREFIX . "otp_data od ON ov.id = od.otp_id WHERE ov.product_id = '" . (int)$product_id . "' ORDER BY ov.id ASC");
+	foreach ($otp_option_value_query->rows as $otp_option_value) {
+		$otp_option_value_data[] = array(
+			'id'                           => $otp_option_value['id'],
+			'parent_option_id'             => $otp_option_value['parent_option_id'],
+			'child_option_id'              => $otp_option_value['child_option_id'],
+			'grandchild_option_id'         => $otp_option_value['grandchild_option_id'],
+			'parent_option_value_id'       => $otp_option_value['parent_option_value_id'],
+			'child_option_value_id'        => $otp_option_value['child_option_value_id'],
+			'grandchild_option_value_id'   => $otp_option_value['grandchild_option_value_id'],
+			'model'                        => $otp_option_value['model'],
+			'extra'                        => $otp_option_value['extra'],
+			'quantity'                     => $otp_option_value['quantity'],
+			'subtract'                     => $otp_option_value['subtract'],
+			'price_prefix'                 => $otp_option_value['price_prefix'],
+			'price'                        => $otp_option_value['price'],
+			'special'                      => $otp_option_value['special'],
+			'weight_prefix'                => $otp_option_value['weight_prefix'],
+			'weight'                       => $otp_option_value['weight'],
+		);
+	}
+	if (!empty($otp_option_data)) {
+		$otp_data['otp_option'] = $otp_option_data;
+		$otp_data['otp_option_value'] = $otp_option_value_data;
+	}
+	return $otp_data;
+}
+public function getSwapOptions($product_id) {
+	$otp_option_data = array();
+	$otp_options = array();
+	$otp_query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "otp_option_value` WHERE product_id = '" . (int)$product_id . "' LIMIT 1");
+	if ($otp_query->num_rows) {
+		$options = $otp_query->row;
+		if ($options['parent_option_id'] != 0) { $otp_options[] = $options['parent_option_id']; }
+		if ($options['child_option_id'] != 0) { $otp_options[] = $options['child_option_id']; }
+		if ($options['grandchild_option_id'] != 0) { $otp_options[] = $options['grandchild_option_id']; }
+		foreach ($otp_options as $otp_option_id) {
+			$otp_option_query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "option` o INNER JOIN `" . DB_PREFIX . "option_description` od ON (o.option_id = od.option_id) WHERE o.option_id = '$otp_option_id' AND od.language_id = '" . (int)$this->config->get('config_language_id') . "' LIMIT 1");
+			$otp_option = $otp_option_query->row;
+			$otp_option_data[] = array(
+				'option_id'            => $otp_option_id,
+				'name'                 => $otp_option['name']
+			);
+		}
+	}
+	return $otp_option_data;
+}
+public function getSwapOptionValues($product_id, $option_id) {
+	$pquery = $this->db->query("SELECT * FROM `" . DB_PREFIX . "otp_option_value` WHERE product_id = '" . (int)$product_id . "' AND parent_option_id = '" . (int)$option_id . "'");
+	if ($pquery->num_rows) {
+		$position = "parent";
+	}
+	else {
+		$cquery = $this->db->query("SELECT * FROM `" . DB_PREFIX . "otp_option_value` WHERE product_id = '" . (int)$product_id . "' AND child_option_id = '" . (int)$option_id . "'");
+		if ($cquery->num_rows) {
+			$position = "child";
+		}
+		else {
+			$position = "grandchild";
+		}
+	}
+	$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "otp_option_value` pov INNER JOIN " . DB_PREFIX . "option_value_description ovd ON (pov.".$position."_option_value_id = ovd.option_value_id) WHERE pov.product_id = '" . (int)$product_id . "' AND pov.".$position."_option_id = '" . (int)$option_id . "' AND ovd.language_id = '" . (int)$this->config->get('config_language_id') . "' GROUP BY pov.".$position."_option_value_id");
+	return $query->rows;
+}
+public function getImageSwap($product_id) {
+	$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "otp_image` sw INNER JOIN " . DB_PREFIX . "option_value_description ovd ON (sw.option_value_id = ovd.option_value_id) WHERE sw.product_id = '" . (int)$product_id . "' AND ovd.language_id = '" . (int)$this->config->get('config_language_id') . "' ORDER BY sw.sort_order, sw.id ASC");
+	return $query->rows;
+}
+public function getOtpOrderOptions($product_id) {
+	$otp_option_data = array();
+	$otp_option_list = array();
+	$otp_query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "otp_option_value` WHERE product_id = '" . (int)$product_id . "' LIMIT 1");
+	if ($otp_query->num_rows) {
+		$options = $otp_query->row;
+		if ($options['parent_option_id'] != 0) { $otp_options[] = $options['parent_option_id']; }
+		if ($options['child_option_id'] != 0) { $otp_options[] = $options['child_option_id']; }
+		if ($options['grandchild_option_id'] != 0) { $otp_options[] = $options['grandchild_option_id']; }
+		foreach ($otp_options as $otp_option_id) {
+			$otp_option_query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "option` o INNER JOIN `" . DB_PREFIX . "option_description` od ON (o.option_id = od.option_id) WHERE o.option_id = '$otp_option_id' AND od.language_id = '" . (int)$this->config->get('config_language_id') . "' LIMIT 1");
+			$otp_option = $otp_option_query->row;
+			$otp_option_list[] = array(
+				'option_id'            => $otp_option_id,
+				'name'                 => $otp_option['name'],
+				'type'                 => $otp_option['type']
+			);
+		}
+	}
+	$otpcount = 0;
+	foreach ($otp_option_list as $otp_option) {
+		$otp_option_value_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "option_value ov LEFT JOIN " . DB_PREFIX . "option_value_description ovd ON (ov.option_value_id = ovd.option_value_id) WHERE ov.option_id = '" . (int)$otp_option['option_id'] . "' AND ovd.language_id = '" . (int)$this->config->get('config_language_id') . "' ORDER BY ov.sort_order ASC");
+		$otp_option_value_data = array();
+		if ($otpcount == 0) {
+			$otp_option_value_list_query = $this->db->query("SELECT parent_option_value_id FROM " . DB_PREFIX . "otp_option_value WHERE parent_option_id = '" . (int)$otp_option['option_id'] . "' AND product_id = '" . (int)$product_id . "'");
+			$otp_option_value_list = array();
+			foreach ($otp_option_value_list_query->rows as $otp_option_available_value) {
+				$otp_option_value_list[] = $otp_option_available_value['parent_option_value_id'];
+			}
+			foreach ($otp_option_value_query->rows as $otp_option_value) {
+				if (in_array($otp_option_value['option_value_id'], $otp_option_value_list)) {
+					$otp_option_value_data[] = array(
+					'option_value_id' => $otp_option_value['option_value_id'],
+					'name'            => $otp_option_value['name'],
+					'image'           => $otp_option_value['image'],
+					'sort_order'      => $otp_option_value['sort_order']
+					);
+				}
+			}
+		}
+		else {
+			$otp_option_value_data = '';
+		}
+    	$otp_option_data[] = array(
+			'option_id'            => $otp_option['option_id'],
+			'name'                 => $otp_option['name'],
+			'type'                 => $otp_option['type'],
+			'option_value'         => $otp_option_value_data,
+			'required'             => '1'
+		);
+		$otpcount++;
+	}
+	return $otp_option_data;
+}
+public function getOtpChildValues($product_id, $child_option_id, $parent_option_value_id) {
+	$otp_child_query = $this->db->query("SELECT child_option_value_id FROM `" . DB_PREFIX . "otp_option_value` WHERE product_id = '" . (int)$product_id . "' AND parent_option_value_id = '" . (int)$parent_option_value_id . "'");
+	foreach ($otp_child_query->rows as $child_value) {
+		$otp_child_value_list[] = $child_value['child_option_value_id'];
+	}
+	$otp_option_value_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "option_value ov LEFT JOIN " . DB_PREFIX . "option_value_description ovd ON (ov.option_value_id = ovd.option_value_id) WHERE ov.option_id = '" . (int)$child_option_id . "' AND ovd.language_id = '" . (int)$this->config->get('config_language_id') . "' ORDER BY ov.sort_order ASC");
+	$child_values = '<option value="">'.$this->language->get('text_select').'</option>';
+	foreach ($otp_option_value_query->rows as $otp_option_value) {
+		if (in_array($otp_option_value['option_value_id'], $otp_child_value_list)) {
+			$child_values .= '<option value="'.$otp_option_value['option_value_id'].'">'.$otp_option_value['name'].'</option>';
+		}
+	}
+	return $child_values;
+}
+public function getOtpGrandchildValues($product_id, $grandchild_option_id, $parent_option_value_id, $child_option_value_id) {
+	$otp_grandchild_query = $this->db->query("SELECT grandchild_option_value_id FROM `" . DB_PREFIX . "otp_option_value` WHERE product_id = '" . (int)$product_id . "' AND parent_option_value_id = '" . (int)$parent_option_value_id . "' AND child_option_value_id = '" . (int)$child_option_value_id . "'");
+	foreach ($otp_grandchild_query->rows as $grandchild_value) {
+		$otp_grandchild_value_list[] = $grandchild_value['grandchild_option_value_id'];
+	}
+	$otp_option_value_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "option_value ov LEFT JOIN " . DB_PREFIX . "option_value_description ovd ON (ov.option_value_id = ovd.option_value_id) WHERE ov.option_id = '" . (int)$grandchild_option_id . "' AND ovd.language_id = '" . (int)$this->config->get('config_language_id') . "' ORDER BY ov.sort_order ASC");
+	$grandchild_values = '<option value="">'.$this->language->get('text_select').'</option>';
+	foreach ($otp_option_value_query->rows as $otp_option_value) {
+		if (in_array($otp_option_value['option_value_id'], $otp_grandchild_value_list)) {
+			$grandchild_values .= '<option value="'.$otp_option_value['option_value_id'].'">'.$otp_option_value['name'].'</option>';
+		}
+	}
+	return $grandchild_values;
+}
+public function getOtp($product_id, $parent_option_value_id, $child_option_value_id, $grandchild_option_value_id) {
+	$otp_query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "otp_option_value` ov INNER JOIN `" . DB_PREFIX . "otp_data` od ON ov.id = od.otp_id WHERE ov.product_id = '" . (int)$product_id . "' AND ov.parent_option_value_id = '" . (int)$parent_option_value_id . "' AND ov.child_option_value_id = '" . (int)$child_option_value_id . "' AND ov.grandchild_option_value_id = '" . (int)$grandchild_option_value_id . "' LIMIT 1");
+	$otp = $otp_query->rows;
+	if (!empty($otp)) {
+		$product_query = $this->db->query("SELECT p.price AS price, s.price AS special FROM `" . DB_PREFIX . "product` p LEFT JOIN `" . DB_PREFIX . "product_special` s ON p.product_id = s.product_id WHERE p.product_id = '" . (int)$product_id . "' LIMIT 1");
+		$product_price = $product_query->rows;
+		if ($product_price[0]['special'] > 0) { $product_price = $product_price[0]['special']; }
+		else { $product_price = $product_price[0]['price']; }
+		if ($otp[0]['price'] > 0) {
+			if ($otp[0]['price_prefix'] == "=") { $otp_price = $otp[0]['price']; }
+			elseif ($otp[0]['price_prefix'] == "+") { $otp_price = $product_price + $otp[0]['price']; }
+			else { $otp_price = $product_price - $otp[0]['price']; }
+		}
+		else {
+			$otp_price = 0;
+		}
+		if ($otp[0]['special'] > 0) { $otp_price = $otp[0]['special']; }
+		$otp_data = array(
+			'id' => $otp[0]['id']
+		);
+	}
+	else {
+		$otp_data = '';
+	}
+	return $otp_data;
+}
+public function getOtpCategories() {
+	$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "category c LEFT JOIN " . DB_PREFIX . "category_description cd ON (c.category_id = cd.category_id) LEFT JOIN " . DB_PREFIX . "category_to_store c2s ON (c.category_id = c2s.category_id) WHERE cd.language_id = '" . (int)$this->config->get('config_language_id') . "' AND c2s.store_id = '" . (int)$this->config->get('config_store_id') . "'  AND c.status = '1' ORDER BY c.sort_order, LCASE(cd.name)");
+	return $query->rows;
+}
+public function updateOtp($filename) {
+	$sep = $this->config->get('config_otp_csv');
+	$result = '';
+	if (($csv = fopen("../system/cache/".$filename, "r")) !== FALSE) {
+		$headers = fgetcsv($csv, 1000, $sep);
+		$previous = 0;
+		while (($data = fgetcsv($csv, 1000, $sep)) !== FALSE) {
+			if ($data[0] != $previous) {
+				$this->db->query("DELETE FROM " . DB_PREFIX . "otp_option_value WHERE product_id = '" . (int)$data[0] . "'");
+				$this->db->query("DELETE FROM " . DB_PREFIX . "otp_data WHERE product_id = '" . (int)$data[0]. "'");
+			}
+			$this->db->query("INSERT INTO " . DB_PREFIX . "otp_option_value SET product_id = '$data[0]', parent_option_id = '$data[2]', child_option_id = '$data[6]', grandchild_option_id = '$data[10]', parent_option_value_id = '$data[4]', child_option_value_id = '$data[8]', grandchild_option_value_id = '$data[12]'");
+			$otp_id = $this->db->getLastId();
+			$subtract = ($data[17] == 'yes'?'1':0);
+			$this->db->query("INSERT INTO " . DB_PREFIX . "otp_data SET otp_id = '$otp_id', product_id = '$data[0]', model = '$data[14]', extra = '$data[15]', quantity = '$data[16]', subtract = '$subtract', price_prefix = '$data[18]', price = '$data[19]', special = '$data[20]', weight_prefix = '$data[21]', weight = '$data[22]'");
+			$previous = $data[0];
+		}
+		fclose($csv);
+		$result = "Your option combinations were succesfully updated!";
+	}
+	else {
+		$result = "There was an error reading your CSV file!\n\nYour option combinations were not modified in any way.";
+	}
+	unlink('../system/cache/'.$filename);
+	return $result;
+}
+public function exportOtp($category_id) {
+	if ($category_id == '0') {
+		$query = $this->db->query("SELECT pd.name AS product_name, pod.name AS parent_option_name, cod.name AS child_option_name, god.name AS grandchild_option_name, povd.name AS parent_option_value_name, covd.name AS child_option_value_name, govd.name AS grandchild_option_value_name, otp.*, otpd.* FROM " . DB_PREFIX . "otp_option_value otp INNER JOIN " . DB_PREFIX . "otp_data otpd ON otp.id = otpd.otp_id INNER JOIN " . DB_PREFIX . "product_description pd ON otp.product_id = pd.product_id LEFT JOIN " . DB_PREFIX . "option_description pod ON otp.parent_option_id = pod.option_id LEFT JOIN " . DB_PREFIX . "option_value_description povd ON otp.parent_option_value_id = povd.option_value_id LEFT JOIN " . DB_PREFIX . "option_description cod ON otp.child_option_id = cod.option_id AND cod.language_id = '" . (int)$this->config->get('config_language_id') . "' LEFT JOIN " . DB_PREFIX . "option_value_description covd ON otp.child_option_value_id = covd.option_value_id AND covd.language_id = '" . (int)$this->config->get('config_language_id') . "' LEFT JOIN " . DB_PREFIX . "option_description god ON otp. grandchild_option_id = god.option_id AND god.language_id = '" . (int)$this->config->get('config_language_id') . "' LEFT JOIN " . DB_PREFIX . "option_value_description govd ON otp.grandchild_option_value_id = govd.option_value_id AND govd.language_id = '" . (int)$this->config->get('config_language_id') . "' WHERE pd.language_id = '" . (int)$this->config->get('config_language_id') . "' AND pod.language_id = '" . (int)$this->config->get('config_language_id') . "' AND povd.language_id = '" . (int)$this->config->get('config_language_id') . "' ORDER BY pd.product_id, povd.option_value_id, covd.option_value_id, govd.option_value_id");
+	}
+	else {
+		$query = $this->db->query("SELECT pd.name AS product_name, pod.name AS parent_option_name, cod.name AS child_option_name, god.name AS grandchild_option_name, povd.name AS parent_option_value_name, covd.name AS child_option_value_name, govd.name AS grandchild_option_value_name, otp.*, otpd.* FROM " . DB_PREFIX . "otp_option_value otp INNER JOIN " . DB_PREFIX . "otp_data otpd ON otp.id = otpd.otp_id INNER JOIN " . DB_PREFIX . "product_description pd ON otp.product_id = pd.product_id INNER JOIN " . DB_PREFIX . "product_to_category cat ON pd.product_id = cat.product_id LEFT JOIN " . DB_PREFIX . "option_description pod ON otp.parent_option_id = pod.option_id LEFT JOIN " . DB_PREFIX . "option_value_description povd ON otp.parent_option_value_id = povd.option_value_id LEFT JOIN " . DB_PREFIX . "option_description cod ON otp.child_option_id = cod.option_id AND cod.language_id = '" . (int)$this->config->get('config_language_id') . "' LEFT JOIN " . DB_PREFIX . "option_value_description covd ON otp.child_option_value_id = covd.option_value_id AND covd.language_id = '" . (int)$this->config->get('config_language_id') . "' LEFT JOIN " . DB_PREFIX . "option_description god ON otp. grandchild_option_id = god.option_id AND god.language_id = '" . (int)$this->config->get('config_language_id') . "' LEFT JOIN " . DB_PREFIX . "option_value_description govd ON otp.grandchild_option_value_id = govd.option_value_id AND govd.language_id = '" . (int)$this->config->get('config_language_id') . "' WHERE pd.language_id = '" . (int)$this->config->get('config_language_id') . "' AND pod.language_id = '" . (int)$this->config->get('config_language_id') . "' AND povd.language_id = '" . (int)$this->config->get('config_language_id') . "' AND cat.category_id = '$category_id' ORDER BY pd.product_id, povd.option_value_id, covd.option_value_id, govd.option_value_id");
+	}
+	return $query->rows;
+}
+public function updateOtpImg($filename) {
+	$sep = $this->config->get('config_otp_csv');
+	$result = '';
+	if (($csv = fopen("../system/cache/".$filename, "r")) !== FALSE) {
+		$headers = fgetcsv($csv, 1000, $sep);
+		$previous = 0;
+		while (($data = fgetcsv($csv, 1000, $sep)) !== FALSE) {
+			if ($data[0] != $previous) {
+				$this->db->query("DELETE FROM " . DB_PREFIX . "otp_image WHERE product_id = '" . (int)$data[0] . "'");
+			}
+			$this->db->query("INSERT INTO " . DB_PREFIX . "otp_image SET product_id = '$data[0]', option_id = '$data[2]', option_value_id = '$data[4]', image = '$data[6]', sort_order = '$data[7]'");
+			$previous = $data[0];
+		}
+		fclose($csv);
+		$result = "Your option images were succesfully updated!";
+	}
+	else {
+		$result = "There was an error reading your CSV file!\n\nYour option images were not modified in any way.";
+	}
+	unlink('../system/cache/'.$filename);
+	return $result;
+}
+public function exportOtpImg($category_id) {
+	if ($category_id == '0') {
+		$query = $this->db->query("SELECT pd.name AS product_name, od.name AS option_name, ovd.name AS option_value_name, otp.* FROM " . DB_PREFIX . "otp_image otp INNER JOIN " . DB_PREFIX . "product_description pd ON otp.product_id = pd.product_id LEFT JOIN " . DB_PREFIX . "option_description od ON otp.option_id = od.option_id LEFT JOIN " . DB_PREFIX . "option_value_description ovd ON otp.option_value_id = ovd.option_value_id WHERE pd.language_id = '" . (int)$this->config->get('config_language_id') . "' AND od.language_id = '" . (int)$this->config->get('config_language_id') . "' AND ovd.language_id = '" . (int)$this->config->get('config_language_id') . "' ORDER BY pd.product_id, od.option_id, ovd.option_value_id, otp.id");
+	}
+	else {
+		$query = $this->db->query("SELECT pd.name AS product_name, od.name AS option_name, ovd.name AS option_value_name, otp.* FROM " . DB_PREFIX . "otp_image otp INNER JOIN " . DB_PREFIX . "product_description pd ON otp.product_id = pd.product_id INNER JOIN " . DB_PREFIX . "product_to_category cat ON pd.product_id = cat.product_id LEFT JOIN " . DB_PREFIX . "option_description od ON otp.option_id = od.option_id LEFT JOIN " . DB_PREFIX . "option_value_description ovd ON otp.option_value_id = ovd.option_value_id WHERE pd.language_id = '" . (int)$this->config->get('config_language_id') . "' AND od.language_id = '" . (int)$this->config->get('config_language_id') . "' AND ovd.language_id = '" . (int)$this->config->get('config_language_id') . "' AND cat.category_id = '$category_id' ORDER BY pd.product_id, od.option_id, ovd.option_value_id, otp.id");
+	}
+	return $query->rows;
+}
+public function updateOtpModel($filename) {
+	$sep = $this->config->get('config_otp_csv');
+	$result = '';
+	if (($csv = fopen("../system/cache/".$filename, "r")) !== FALSE) {
+		$headers = fgetcsv($csv, 1000, $sep);
+		$previous = 0;
+		while (($data = fgetcsv($csv, 1000, $sep)) !== FALSE) {
+			$subtract = ($data[3] == 'yes'?1:0);
+			$this->db->query("UPDATE " . DB_PREFIX . "otp_data SET extra = '$data[1]', quantity = '$data[2]', subtract = '$subtract', price_prefix = '$data[4]', price = '$data[5]', special = '$data[6]', weight_prefix = '$data[7]', weight = '$data[8]' WHERE model = '$data[0]' LIMIT 1");
+		}
+		fclose($csv);
+		$result = "Your option combinations were succesfully updated!";
+	}
+	else {
+		$result = "There was an error reading your CSV file!\n\nYour option combinations were not modified in any way.";
+	}
+	unlink('../system/cache/'.$filename);
+	return $result;
+}
+public function exportOtpModel($category_id) {
+	if ($category_id == '0') {
+		$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "otp_data");
+	}
+	else {
+		$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "otp_data otp INNER JOIN " . DB_PREFIX . "product_to_category cat ON otp.product_id = cat.product_id WHERE cat.category_id = '$category_id'");
+	}
+	return $query->rows;
+}
+public function addProduct($data) {
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+if (isset($data['product_option'])) {
+]]></search>
+<add trim="true"><![CDATA[
+if (isset($data['otp_options']) && !empty($data['otp_options']['otp_option_value'])) {
+	$otp_list = '';
+	foreach ($data['otp_options']['otp_option_value'] as $option_value) {
+		if (isset($option_value['otp']) && $option_value['otp'] != '') {
+			$otp_list .= $option_value['otp'].",";
+		}
+	}
+	if ($otp_list != '') {
+		$otp_list = substr($otp_list, 0, -1);
+		$this->db->query("DELETE FROM " . DB_PREFIX . "otp_option_value WHERE product_id = '" . (int)$product_id . "' AND `id` NOT IN ($otp_list)");
+		$this->db->query("DELETE FROM " . DB_PREFIX . "otp_data WHERE product_id = '" . (int)$product_id . "' AND otp_id NOT IN ($otp_list)");
+	}
+	else {
+		$this->db->query("DELETE FROM " . DB_PREFIX . "otp_option_value WHERE product_id = '" . (int)$product_id . "'");
+		$this->db->query("DELETE FROM " . DB_PREFIX . "otp_data WHERE product_id = '" . (int)$product_id . "'");
+	}
+	foreach ($data['otp_options']['otp_option_value'] as $option_value) {
+		if (isset($option_value['otp']) && $option_value['otp'] != '') {
+			$otp = $option_value['otp'];
+			$this->db->query("UPDATE " . DB_PREFIX . "otp_option_value SET parent_option_id = '" . (int)$option_value['parent_option_id'] . "', child_option_id = '" . (int)$option_value['child_option_id'] . "', grandchild_option_id = '" . (int)$option_value['grandchild_option_id'] . "', parent_option_value_id = '" . (int)$option_value['parent_option_value_id'] . "', child_option_value_id = '" . (int)$option_value['child_option_value_id'] . "', grandchild_option_value_id = '" . (int)$option_value['grandchild_option_value_id'] . "' WHERE `id` = '$otp' LIMIT 1");
+			$this->db->query("UPDATE " . DB_PREFIX . "otp_data SET model = '" . $option_value['model'] . "', extra = '" . $option_value['extra'] . "', quantity = '" . (int)$option_value['quantity'] . "', subtract = '" . (int)$option_value['subtract'] . "', price_prefix = '" . $option_value['price_prefix'] . "', price = '" . $option_value['price'] . "', special = '" . $option_value['special'] . "', weight_prefix = '" . $option_value['weight_prefix'] . "', weight = '" . $option_value['weight'] . "' WHERE otp_id = '$otp' LIMIT 1");
+		}
+		else {
+			$this->db->query("INSERT INTO " . DB_PREFIX . "otp_option_value SET product_id = '" . (int)$product_id . "', parent_option_id = '" . (int)$option_value['parent_option_id'] . "', child_option_id = '" . (int)$option_value['child_option_id'] . "', grandchild_option_id = '" . (int)$option_value['grandchild_option_id'] . "', parent_option_value_id = '" . (int)$option_value['parent_option_value_id'] . "', child_option_value_id = '" . (int)$option_value['child_option_value_id'] . "', grandchild_option_value_id = '" . (int)$option_value['grandchild_option_value_id'] . "'");
+			$otp_id = $this->db->getLastId();
+			$this->db->query("INSERT INTO " . DB_PREFIX . "otp_data SET otp_id = '$otp_id', product_id = '" . (int)$product_id . "', model = '" . $option_value['model'] . "', extra = '" . $option_value['extra'] . "', quantity = '" . (int)$option_value['quantity'] . "', subtract = '" . (int)$option_value['subtract'] . "', price_prefix = '" . $option_value['price_prefix'] . "', price = '" . $option_value['price'] . "', special = '" . $option_value['special'] . "', weight_prefix = '" . $option_value['weight_prefix'] . "', weight = '" . $option_value['weight'] . "'");
+		}
+	}
+	if (isset($data['image_swap'])) {
+		$swap_list = '';
+		foreach ($data['image_swap'] as $key => $swap) {
+			if ($swap['id'] != '' && $swap['image'] != '') {
+				$swap_list .= $swap['id'].",";
+			}
+		}
+		if ($swap_list != '') {
+			$swap_list = substr($swap_list, 0, -1);
+			$this->db->query("DELETE FROM " . DB_PREFIX . "otp_image WHERE product_id = '" . (int)$product_id . "' AND `id` NOT IN ($swap_list)");
+		}
+		else {
+			$this->db->query("DELETE FROM " . DB_PREFIX . "otp_image WHERE product_id = '" . (int)$product_id . "'");
+		}
+		foreach ($data['image_swap'] as $key => $swap) {
+			if ($swap['id'] != '' && $swap['image'] != '' && !isset($data['otp_copy'])) {
+				$swap_id = $swap['id'];
+				$this->db->query("UPDATE " . DB_PREFIX . "otp_image SET product_id = '" . (int)$product_id . "', option_id = '" . (int)$swap['option_id'] . "', option_value_id = '" . (int)$swap['option_value_id'] . "', image = '" . $swap['image'] . "', sort_order = '" . (int)$swap['sort_order'] . "' WHERE `id` = '$swap_id' LIMIT 1");
+			}
+			elseif ($swap['image'] != '') {
+				$this->db->query("INSERT INTO " . DB_PREFIX . "otp_image SET product_id = '" . (int)$product_id . "', option_id = '" . (int)$swap['option_id'] . "', option_value_id = '" . (int)$swap['option_value_id'] . "', image = '" . $swap['image'] . "', sort_order = '" . (int)$swap['sort_order'] . "'");
+			}
+		}
+	}
+	else {
+		$this->db->query("DELETE FROM " . DB_PREFIX . "otp_image WHERE product_id = '" . (int)$product_id . "'");
+	}
+}
+else {
+	$this->db->query("DELETE FROM " . DB_PREFIX . "otp_option_value WHERE product_id = '" . (int)$product_id . "'");
+	$this->db->query("DELETE FROM " . DB_PREFIX . "otp_data WHERE product_id = '" . (int)$product_id . "'");
+	$this->db->query("DELETE FROM " . DB_PREFIX . "otp_image WHERE product_id = '" . (int)$product_id . "'");
+}
+if (isset($data['product_option'])) {
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+$data = array_merge($data, array('product_attribute' => $this->getProductAttributes($product_id)));
+]]></search>
+<add trim="true"><![CDATA[
+$data = array_merge($data, array('otp_options' => $this->getOtpOptions($product_id)));
+$data = array_merge($data, array('image_swap' => $this->getImageSwap($product_id)));
+$data = array_merge($data, array('otp_copy' => true));
+$data = array_merge($data, array('product_attribute' => $this->getProductAttributes($product_id)));
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+$this->db->query("DELETE FROM " . DB_PREFIX . "review WHERE product_id = '" . (int)$product_id . "'");
+]]></search>
+<add trim="true"><![CDATA[
+$this->db->query("DELETE FROM " . DB_PREFIX . "review WHERE product_id = '" . (int)$product_id . "'");
+$this->db->query("DELETE FROM " . DB_PREFIX . "otp_option_value WHERE product_id = '" . (int)$product_id . "'");
+$this->db->query("DELETE FROM " . DB_PREFIX . "otp_data WHERE product_id = '" . (int)$product_id . "'");
+$this->db->query("DELETE FROM " . DB_PREFIX . "otp_image WHERE product_id = '" . (int)$product_id . "'");
+]]></add>
+</operation>
+</file>
+
+<file name="admin/controller/catalog/product.php">
+<operation>
+<search position="after" offset="5"><![CDATA[
+public function index() {
+]]></search>
+<add trim="true"><![CDATA[
+if ($this->config->get('config_otp_tool')) {
+	$this->data['otp_categories'] = $this->model_catalog_product->getOtpCategories();
+}
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+if (isset($this->request->post['product_option'])) {
+]]></search>
+<add trim="true"><![CDATA[
+if (isset($this->request->post['otp_options']) && isset($this->error) && !empty($this->error)) {
+	$otp_options = $this->request->post['otp_options'];
+} elseif (isset($this->request->get['product_id'])) {
+	$otp_options = $this->model_catalog_product->getOtpOptions($this->request->get['product_id']);
+} else {
+	$otp_options = array();
+}
+if (!empty($otp_options) && empty($otp_options['otp_option'][0]['option_values'])) {
+	foreach ($otp_options['otp_option'] as $key => $otp_option) {
+		$option_values = $this->model_catalog_option->getOptionValues($otp_option['option_id']);
+		$otp_option_data[] = array(
+			'option_id'            => $otp_option['option_id'],
+			'name'                 => $otp_option['name'],
+			'option_values'        => $option_values
+		);
+	}
+	$otp_options['otp_option'] = $otp_option_data;
+}
+$this->data['otp_options'] = $otp_options;
+if (isset($this->request->get['product_id'])) {
+	$swap_options = $this->model_catalog_product->getSwapOptions($this->request->get['product_id']);
+} else {
+	$swap_options = array();
+}
+$this->data['swap_options'] = $swap_options;
+if (isset($this->request->post['image_swap']) && isset($this->error) && !empty($this->error)) {
+	$image_swap = $this->request->post['image_swap'];
+} elseif (isset($this->request->get['product_id'])) {
+	$image_swap = $this->model_catalog_product->getImageSwap($this->request->get['product_id']);
+} else {
+	$image_swap = array();
+}
+$swap_option = '';
+$image_swap_data = array();
+if (!empty($image_swap)) {
+	foreach ($image_swap as $swap_item) {
+		$swap_list[] = $swap_item['option_value_id'];
+	}
+	$swap_option = $swap_item['option_id'];
+	$swap_option_values = $this->model_catalog_product->getSwapOptionValues($this->request->get['product_id'], $swap_option);
+	$i = 1;
+	foreach($swap_option_values as $swap_option_item) {
+		$swap_id = $swap_option_item['option_value_id'];
+		$image_swap_data[$swap_id]['swap_name'] = $swap_option_item['name'];
+		$image_swap_data[$swap_id]['swap_id'] = $swap_option_item['option_value_id'];
+		if (in_array($swap_id, $swap_list)) {
+			foreach ($image_swap as $swap) {
+				if ($swap_id == $swap['option_value_id']) {
+					$image_swap_data[$swap_id]['images'][$i] = $swap;
+					$image_swap_data[$swap_id]['images'][$i]['thumb'] = $this->model_tool_image->resize($swap['image'], 100, 100);
+					$i++;
+				}
+			}
+		}
+		else {
+			$image_swap_data[$swap_id]['images'] = array();
+		}
+	}
+}
+$this->data['swap_option'] = $swap_option;
+$this->data['image_swap'] = $image_swap_data;
+if (isset($this->request->post['product_option'])) {
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+if ($this->error && !isset($this->error['warning'])) {
+]]></search>
+<add trim="true"><![CDATA[
+if (isset($this->request->post['otp_options']['otp_option_value'])) {
+	$otp_list = array();
+	$duplicate_otp = array();
+	$re_indexed_otp = array_values($this->request->post['otp_options']['otp_option_value']);
+	foreach ($re_indexed_otp as $key => $otp) {
+		$combination = $otp['parent_option_id'].'-'.$otp['parent_option_value_id'].'-'.$otp['child_option_id'].'-'.$otp['child_option_value_id'].'-'.$otp['grandchild_option_id'].'-'.$otp['grandchild_option_value_id'];
+		if (in_array($combination, $otp_list)) {
+			$duplicate_otp[] = array_search($combination, $otp_list);
+			$duplicate_otp[] = $key;
+			$this->error['warning'] = "All option combinations must be unique!";
+		}
+		else {
+			$otp_list[$key] = $combination;
+		}
+	}
+	$this->session->data['duplicate_otp'] = $duplicate_otp;
+}
+if ($this->error && !isset($this->error['warning'])) {
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+private $error = array();
+]]></search>
+<add trim="true"><![CDATA[
+private $error = array();
+public function getswapoptionvalues() {
+	$this->language->load('catalog/product');
+	$this->load->model('catalog/product');
+	$swap_option_values = $this->model_catalog_product->getSwapOptionValues($this->request->get['product_id'], $this->request->get['option_id']);
+	$html = '';
+	foreach ($swap_option_values as $swap_option_value) {
+		$html .= '<table class="list">';
+		$html .= '<thead>';
+		$html .= '<tr>';
+		$html .= '<td class="left" style="width:50%;">Images for "'.$swap_option_value['name'].'"</td>';
+		$html .= '<td class="right">'.$this->language->get('entry_sort_order').'</td>';
+		$html .= '<td></td>';
+		$html .= '</tr>';
+		$html .= '</thead>';
+		$html .= '<tfoot id="tfoot-'.$swap_option_value['option_value_id'].'">';
+		$html .= '<tr>';
+		$html .= '<td colspan="2"></td>';
+		$html .= '<td class="left"><a swap_id="'.$swap_option_value['option_value_id'].'" swap_name="'.$swap_option_value['name'].'" class="addswapimage button">'.$this->language->get('button_add_image').'</a></td>';
+		$html .= '</tr>';
+		$html .= '</tfoot>';
+		$html .= '</table>';
+	}
+	echo $html;
+}
+public function getotpchildvalues() {
+	$this->load->model('catalog/product');
+	$child_values = $this->model_catalog_product->getOtpChildValues($this->request->get['product_id'], $this->request->get['child_option_id'], $this->request->get['parent_option_value_id']);
+	echo $child_values;
+}
+public function getotpgrandchildvalues() {
+	$this->load->model('catalog/product');
+	$grandchild_values = $this->model_catalog_product->getOtpGrandchildValues($this->request->get['product_id'], $this->request->get['grandchild_option_id'], $this->request->get['parent_option_value_id'], $this->request->get['child_option_value_id']);
+	echo $grandchild_values;
+}
+public function getotp() {
+	$this->load->model('catalog/product');
+	$otp = $this->model_catalog_product->getOtp($this->request->get['product_id'], $this->request->get['parent_option_value_id'], $this->request->get['child_option_value_id'], $this->request->get['grandchild_option_value_id']);
+	if ($otp) {
+		print json_encode($otp);
+	}
+}
+public function uploadotp() {
+	$this->language->load('sale/order');
+	$json = array();
+	if (!$this->user->hasPermission('modify', 'catalog/product')) {
+		$json['error'] = $this->language->get('error_permission');
+	}
+	if (!isset($json['error'])) {
+		if (!empty($this->request->files['file']['name'])) {
+			$filename = basename(html_entity_decode($this->request->files['file']['name'], ENT_QUOTES, 'UTF-8'));
+			if ((utf8_strlen($filename) < 3) || (utf8_strlen($filename) > 128)) {
+				$json['error'] = $this->language->get('error_filename');
+			}
+			$allowed = array();
+			$allowed[] = "csv";
+			if (!in_array(substr(strrchr($filename, '.'), 1), $allowed)) {
+				$json['error'] = $this->language->get('error_filetype');
+			}
+			if ($this->request->files['file']['error'] != UPLOAD_ERR_OK) {
+				$json['error'] = $this->language->get('error_upload_' . $this->request->files['file']['error']);
+			}
+			if ($this->request->files['file']['error'] != UPLOAD_ERR_OK) {
+				$json['error'] = $this->language->get('error_upload_' . $this->request->files['file']['error']);
+			}
+		} else {
+			$json['error'] = $this->language->get('error_upload');
+		}
+	}
+	if (!isset($json['error'])) {
+		if (is_uploaded_file($this->request->files['file']['tmp_name']) && file_exists($this->request->files['file']['tmp_name'])) {
+			$json['filename'] = $filename;
+			move_uploaded_file($this->request->files['file']['tmp_name'], DIR_CACHE . $filename);
+		}
+		$json['success'] = $this->language->get('text_upload');
+	}
+	$this->response->setOutput(json_encode($json));
+}
+public function updateotp() {
+	$filename = $this->request->post['filename'];
+	$this->load->model('catalog/product');
+	$result = $this->model_catalog_product->updateOtp($filename);
+	echo $result;
+}
+public function exportotp() {
+	$sep = $this->config->get('config_otp_csv');
+	$category_id = $this->request->get['category'];
+	$this->load->model('catalog/product');
+	$result = $this->model_catalog_product->exportOtp($category_id);
+	$csv = "Product ID".$sep."Product Name".$sep."PO ID".$sep."PO Name".$sep."POV ID".$sep."POV Name".$sep."CO ID".$sep."CO Name".$sep."COV ID".$sep."COV Name".$sep."GO ID".$sep."GO Name".$sep."GOV ID".$sep."GOV Name".$sep."Model".$sep."Extra".$sep."Quantity".$sep."Subtract stock".$sep."Price prefix".$sep."Price".$sep."Special price".$sep."Weight prefix".$sep."Weight\n";
+	foreach($result as $column) {
+		$subtract = ($column['subtract'] == '1'?'yes':'no');
+		$csv .= $column['product_id'].$sep.str_replace($sep, ' ', $column['product_name']).$sep.$column['parent_option_id'].$sep.str_replace($sep, ' ', $column['parent_option_name']).$sep.$column['parent_option_value_id'].$sep.str_replace($sep, ' ', $column['parent_option_value_name']).$sep.$column['child_option_id'].$sep.str_replace($sep, ' ', $column['child_option_name']).$sep.$column['child_option_value_id'].$sep.str_replace($sep, ' ', $column['child_option_value_name']).$sep.$column['grandchild_option_id'].$sep.str_replace($sep, ' ', $column['grandchild_option_name']).$sep.$column['grandchild_option_value_id'].$sep.str_replace($sep, ' ', $column['grandchild_option_value_name']).$sep.str_replace($sep, ' ', $column['model']).$sep.str_replace($sep, ' ', $column['extra']).$sep.$column['quantity'].$sep.$subtract.$sep.$column['price_prefix'].$sep.number_format($column['price'],3).$sep.number_format($column['special'],3).$sep.$column['weight_prefix'].$sep.number_format($column['weight'],3)."\n";
+	}
+	header("Content-type: application/x-msdownload");
+	header("Content-Disposition: attachment; filename=otp_combinations_".date('d')."_".date('m')."_".date('Y').".csv");
+	header("Pragma: no-cache");
+	header("Expires: 0");
+	echo "$csv";
+	exit();
+}
+public function updateotpimg() {
+	$filename = $this->request->post['filename'];
+	$this->load->model('catalog/product');
+	$result = $this->model_catalog_product->updateOtpImg($filename);
+	echo $result;
+}
+public function exportotpimg() {
+	$sep = $this->config->get('config_otp_csv');
+	$category_id = $this->request->get['category'];
+	$this->load->model('catalog/product');
+	$result = $this->model_catalog_product->exportOtpImg($category_id);
+	$csv = "Product ID".$sep."Product Name".$sep."Option ID".$sep."Option Name".$sep."Option Value ID".$sep."Option Value Name".$sep."Image".$sep."Sort Order\n";
+	foreach($result as $column) {
+		$csv .= $column['product_id'].$sep.str_replace($sep, ' ', $column['product_name']).$sep.$column['option_id'].$sep.str_replace($sep, ' ', $column['option_name']).$sep.$column['option_value_id'].$sep.str_replace($sep, ' ', $column['option_value_name']).$sep.$column['image'].$sep.$column['sort_order']."\n";
+	}
+	header("Content-type: application/x-msdownload");
+	header("Content-Disposition: attachment; filename=otp_image_data_".date('d')."_".date('m')."_".date('Y').".csv");
+	header("Pragma: no-cache");
+	header("Expires: 0");
+	echo "$csv";
+	exit();
+}
+public function updateotpmodel() {
+	$filename = $this->request->post['filename'];
+	$this->load->model('catalog/product');
+	$result = $this->model_catalog_product->updateOtpModel($filename);
+	echo $result;
+}
+public function exportotpmodel() {
+	$sep = $this->config->get('config_otp_csv');
+	$category_id = $this->request->get['category'];
+	$this->load->model('catalog/product');
+	$result = $this->model_catalog_product->exportOtpModel($category_id);
+	$csv = "Model".$sep."Extra".$sep."Quantity".$sep."Subtract stock".$sep."Price prefix".$sep."Price".$sep."Special price".$sep."Weight prefix".$sep."Weight\n";
+	foreach($result as $column) {
+		$subtract = ($column['subtract'] == '1'?'yes':'no');
+		$csv .= $column['model'].$sep.str_replace($sep, ' ', $column['extra']).$sep.$column['quantity'].$sep.$subtract.$sep.$column['price_prefix'].$sep.number_format($column['price'],3).$sep.number_format($column['special'],3).$sep.$column['weight_prefix'].$sep.number_format($column['weight'],3)."\n";
+	}
+	header("Content-type: application/x-msdownload");
+	header("Content-Disposition: attachment; filename=otp_by_model_".date('d')."_".date('m')."_".date('Y').".csv");
+	header("Pragma: no-cache");
+	header("Expires: 0");
+	echo "$csv";
+	exit();
+}
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+$option_data = array();
+]]></search>
+<add trim="true"><![CDATA[
+$option_data = array();
+$this->load->model('catalog/product');
+$otpcheck = $this->model_catalog_product->checkOtp($result['product_id']);
+if ($otpcheck) {
+	$otp_option_data = $this->model_catalog_product->getOtpOrderOptions($result['product_id']);
+}
+else {
+	$otp_option_data = false;
+}
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+$json[] = array(
+]]></search>
+<add trim="true"><![CDATA[
+$json[] = array(
+	'otpcheck' => $otpcheck,
+	'otpoption' => $otp_option_data,
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+if (isset($this->error['model'])) {
+]]></search>
+<add trim="true"><![CDATA[
+$this->data['duplicate_otp'] = array();
+if (isset($this->session->data['duplicate_otp'])) {
+	$this->data['duplicate_otp'] = $this->session->data['duplicate_otp'];
+	unset($this->session->data['duplicate_otp']);
+}
+if (isset($this->error['model'])) {
+]]></add>
+</operation>
+</file>
+
+
+
+<file name="admin/view/template/catalog/product_form.tpl">
+<operation>
+<search position="replace"><![CDATA[
+<input type="text" name="quantity" value="<?php echo $quantity; ?>" size="2" />
+]]></search>
+<add trim="true"><![CDATA[
+<input type="text" id="otp-main-stock" name="quantity" value="<?php echo $quantity; ?>" size="2" />
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+<div id="tab-option">
+]]></search>
+<add trim="true"><![CDATA[
+<div id="tab-option">
+	<script type="text/javascript">
+	$(document).ready(function() {
+		$('#tab-option').on('blur','.otp-stock',function(){
+			stock = 0;
+			$('.otp-stock').each(function(){
+				substock = $(this).val();
+				stock += parseInt(substock);
+			})
+			$('#otp-main-stock').val(stock);
+		});
+	});
+	</script>
+	<table class="form">
+		<tr>
+			<td><strong>Option Combinations:</strong></td>
+		</tr>
+	</table>
+	<div id="vtab-otp-option" class="vtabs" style="width:190px;padding:10px 0;min-height:120px;float:left;display:block;border-right:1px solid #DDDDDD;">
+		<?php $otp_option_row = 0; ?>
+		<?php $otp_option_value_row = 0; ?>
+		<?php $otpcount = 0; ?>
+		<?php if (!empty($otp_options['otp_option_value'])) { ?>
+			<?php foreach ($otp_options['otp_option'] as $otp_option) { ?>
+				<a id="otp-option-<?php echo $otp_option_row; ?>" class="selected chosen-otp-option"><?php echo $otp_option['name']; ?>&nbsp;<img src="view/image/delete.png" alt="" onclick="$('.chosen-otp-option').remove(); $('#tab-otp-option-values').html(''); $('#swap_option').html('<option value=\'\'><?php echo $text_select; ?></option>'); $('#swap-container').html(''); otpcount_f(); return false;" /></a>
+				<?php $otp_option_row++; ?>
+			<?php } ?>
+		<?php } ?>
+		<span id="otp-option-add">
+		<input name="otp-option" value="" style="width: 130px;" />
+		&nbsp;<img src="view/image/add.png" alt="<?php echo $button_add_option; ?>" title="<?php echo $button_add_option; ?>" /></span>
+	</div>
+	<div id="tab-otp-option-values" class="vtabs-content">
+	<?php
+		if (!empty($otp_options['otp_option_value'])) {
+			$html = '';
+			foreach ($otp_options['otp_option'] as $otp_option) {
+				$html .= '<input type="hidden" id="otp_'.$otpcount.'_name" name="otp_options[otp_option]['.$otpcount.'][name]" value="'.$otp_option['name'].'" />';
+				$html .= '<input type="hidden" id="otp_'.$otpcount.'_id" name="otp_options[otp_option]['.$otpcount.'][option_id]" value="'.$otp_option['option_id'].'" />';
+				$html .= '<select id="otp-option-values-'.$otpcount.'" style="display: none;">';
+					foreach ($otp_option['option_values'] as $option_value) {
+						$html .= '<option value="'.$option_value['option_value_id'].'">'.$option_value['name'].'</option>';
+					}
+				$html .= '</select>';
+				$otpcount++;
+			}
+			echo $html;
+			$otp_colspan = 8;
+			$html  = '<table id="otp-option-value" class="list">';
+			$html .= '<thead>';
+			$html .= '<tr>';
+			$html .= '<td class="left" id="otp_parent_name">'.$otp_options['otp_option'][0]['name'].':</td>';
+			if ($otpcount > 1) {
+				$otp_colspan++;
+				if ($otpcount == 2) {
+					$html .= '<td class="left" id="otp_child_name">'.$otp_options['otp_option'][1]['name'].':</td>';
+					$html .= '<td class="left" id="otp_grandchild_name" style="display: none;"></td>';
+				}
+				else {
+					$otp_colspan++;
+					$html .= '<td class="left" id="otp_child_name">'.$otp_options['otp_option'][1]['name'].':</td>';
+					$html .= '<td class="left" id="otp_grandchild_name">'.$otp_options['otp_option'][2]['name'].':</td>';
+				}
+			}
+			$html .= '<td class="left">'.$entry_model.'</td>';
+			if ($this->config->get('config_otp_extra')) {
+				$html .= '<td class="left">Extra:</td>';
+			}
+			else {
+				$otp_colspan--;
+			}
+			$html .= '<td class="left">'.$entry_quantity.'</td>';
+			$html .= '<td class="left">'.$entry_subtract.'</td>';
+			if ($this->config->get('config_otp_price')) {
+				$html .= '<td class="left">'.$entry_price.'</td>';
+			}
+			else {
+				$otp_colspan--;
+			}
+			if ($this->config->get('config_otp_special')) {
+				$html .= '<td class="left">'.$tab_special.':</td>';
+			}
+			else {
+				$otp_colspan--;
+			}
+			if ($this->config->get('config_otp_weight')) {
+				$html .= '<td class="left">'.$entry_weight.'</td>';
+			}
+			else {
+				$otp_colspan--;
+			}
+			$html .= '<td></td>';
+			$html .= '</tr>';
+			$html .= '</thead>';
+			foreach ($otp_options['otp_option_value'] as $otp_option_value) {
+				$duplicate_error = '';
+				if (!empty($duplicate_otp)) {
+					if (in_array($otp_option_value_row, $duplicate_otp)) {
+						$duplicate_error = 'style="background-color:#ffd1d1;"';
+					}
+				}
+				$html .= '<tbody id="otp-option-value-row'.$otp_option_value_row.'">';
+				$html .= '<tr>';
+				$html .= '<td class="left"'.$duplicate_error.'>
+										<input type="hidden" name="otp_options[otp_option_value]['.$otp_option_value_row.'][otp]" value="'.(isset($otp_option_value['id'])?$otp_option_value['id']:"").'">
+										<input type="hidden" name="otp_options[otp_option_value]['.$otp_option_value_row.'][parent_option_id]" value="'.$otp_option_value['parent_option_id'].'">
+										<select name="otp_options[otp_option_value]['.$otp_option_value_row.'][parent_option_value_id]">';
+				foreach ($otp_options['otp_option'][0]['option_values'] as $option_value) {
+					$selected = '';
+					if ($otp_option_value['parent_option_value_id'] == $option_value['option_value_id']) {
+						$selected = 'selected="selected"';
+					}
+					$html .= '<option value="'.$option_value['option_value_id'].'" '.$selected.'>'.$option_value['name'].'</option>';
+				}
+				$html .= '</select></td>';
+				if ($otpcount > 1) {
+					if ($otpcount == 2) {
+						$html .= '<td class="left"'.$duplicate_error.'>
+												<input type="hidden" name="otp_options[otp_option_value]['.$otp_option_value_row.'][child_option_id]" value="'.$otp_option_value['child_option_id'].'">
+												<select name="otp_options[otp_option_value]['.$otp_option_value_row.'][child_option_value_id]">';
+						foreach ($otp_options['otp_option'][1]['option_values'] as $option_value) {
+							$selected = '';
+							if ($otp_option_value['child_option_value_id'] == $option_value['option_value_id']) {
+								$selected = 'selected="selected"';
+							}
+							$html .= '<option value="'.$option_value['option_value_id'].'" '.$selected.'>'.$option_value['name'].'</option>';
+						}
+						$html .= '</select></td>';
+						$html .= '<input type="hidden" name="otp_options[otp_option_value]['.$otp_option_value_row.'][grandchild_option_id]" value=""><input type="hidden" name="otp_options[otp_option_value]['.$otp_option_value_row.'][grandchild_option_value_id]" value="">';
+					}
+					else {
+						$html .= '<td class="left"'.$duplicate_error.'>
+												<input type="hidden" name="otp_options[otp_option_value]['.$otp_option_value_row.'][child_option_id]" value="'.$otp_option_value['child_option_id'].'">
+												<select name="otp_options[otp_option_value]['.$otp_option_value_row.'][child_option_value_id]">';
+						foreach ($otp_options['otp_option'][1]['option_values'] as $option_value) {
+							$selected = '';
+							if ($otp_option_value['child_option_value_id'] == $option_value['option_value_id']) {
+								$selected = 'selected="selected"';
+							}
+							$html .= '<option value="'.$option_value['option_value_id'].'" '.$selected.'>'.$option_value['name'].'</option>';
+						}
+						$html .= '</select></td>';
+						$html .= '<td class="left"'.$duplicate_error.'>
+												<input type="hidden" name="otp_options[otp_option_value]['.$otp_option_value_row.'][grandchild_option_id]" value="'.$otp_option_value['grandchild_option_id'].'">
+												<select name="otp_options[otp_option_value]['.$otp_option_value_row.'][grandchild_option_value_id]">';
+						foreach ($otp_options['otp_option'][2]['option_values'] as $option_value) {
+							$selected = '';
+							if ($otp_option_value['grandchild_option_value_id'] == $option_value['option_value_id']) {
+								$selected = 'selected="selected"';
+							}
+							$html .= '<option value="'.$option_value['option_value_id'].'" '.$selected.'>'.$option_value['name'].'</option>';
+						}
+						$html .= '</select></td>';
+					}
+				}
+				else {
+					$html .= '<input type="hidden" name="otp_options[otp_option_value]['.$otp_option_value_row.'][child_option_id]" value=""><input type="hidden" name="otp_options[otp_option_value]['.$otp_option_value_row.'][child_option_value_id]" value="">';
+					$html .= '<input type="hidden" name="otp_options[otp_option_value]['.$otp_option_value_row.'][grandchild_option_id]" value=""><input type="hidden" name="otp_options[otp_option_value]['.$otp_option_value_row.'][grandchild_option_value_id]" value="">';
+				}
+				$html .= '<td class="left"><input type="text" name="otp_options[otp_option_value]['.$otp_option_value_row.'][model]" value="'.$otp_option_value['model'].'" size="12" /></td>';
+				if ($this->config->get('config_otp_extra')) {
+					$html .= '<td><input type="text" name="otp_options[otp_option_value]['.$otp_option_value_row.'][extra]" value="'.$otp_option_value['extra'].'" size="12" /></td>';
+				}
+				else {
+					$html .= '<input type="hidden" name="otp_options[otp_option_value]['.$otp_option_value_row.'][extra]" value="'.$otp_option_value['extra'].'">';
+				}
+				$html .= '<td class="left"><input type="text" class="otp-stock" name="otp_options[otp_option_value]['.$otp_option_value_row.'][quantity]" value="'.$otp_option_value['quantity'].'" size="5" /></td>';
+				$html .= '<td class="left"><select name="otp_options[otp_option_value]['.$otp_option_value_row.'][subtract]">';
+				$html .= '<option value="1" '.($otp_option_value['subtract']=='1'?'selected="selected"':'').'>'.$text_yes.'</option>';
+				$html .= '<option value="0" '.($otp_option_value['subtract']=='0'?'selected="selected"':'').'>'.$text_no.'</option>';
+				$html .= '</select></td>';
+				if ($this->config->get('config_otp_price')) {
+					$html .= '<td><select name="otp_options[otp_option_value]['.$otp_option_value_row.'][price_prefix]">';
+					$html .= '<option value="=" '.($otp_option_value['price_prefix']=='='?'selected="selected"':'').'>=</option>';
+					$html .= '<option value="+" '.($otp_option_value['price_prefix']=='+'?'selected="selected"':'').'>+</option>';
+					$html .= '<option value="-" '.($otp_option_value['price_prefix']=='-'?'selected="selected"':'').'>-</option>';
+					$html .= '</select>';
+					$html .= '<input type="text" name="otp_options[otp_option_value]['.$otp_option_value_row.'][price]" value="'.$otp_option_value['price'].'" size="5" /></td>';
+				}
+				else {
+					$html .= '<input type="hidden" name="otp_options[otp_option_value]['.$otp_option_value_row.'][price_prefix]" value="'.$otp_option_value['price_prefix'].'"><input type="hidden" name="otp_options[otp_option_value]['.$otp_option_value_row.'][price]" value="'.$otp_option_value['price'].'">';
+				}
+				if ($this->config->get('config_otp_special')) {
+					$html .= '<td><input type="text" name="otp_options[otp_option_value]['.$otp_option_value_row.'][special]" value="'.$otp_option_value['special'].'" size="5" /></td>';
+				}
+				else {
+					$html .= '<input type="hidden" name="otp_options[otp_option_value]['.$otp_option_value_row.'][special]" value="'.$otp_option_value['special'].'">';
+				}
+				if ($this->config->get('config_otp_weight')) {
+					$html .= '<td><select name="otp_options[otp_option_value]['.$otp_option_value_row.'][weight_prefix]">';
+					$html .= '<option value="=" '.($otp_option_value['weight_prefix']=='='?'selected="selected"':'').'>=</option>';
+					$html .= '<option value="+" '.($otp_option_value['weight_prefix']=='+'?'selected="selected"':'').'>+</option>';
+					$html .= '<option value="-" '.($otp_option_value['weight_prefix']=='-'?'selected="selected"':'').'>-</option>';
+					$html .= '</select>';
+					$html .= '<input type="text" name="otp_options[otp_option_value]['.$otp_option_value_row.'][weight]" value="'.$otp_option_value['weight'].'" size="5" /></td>';
+				}
+				else {
+					$html .= '<input type="hidden" name="otp_options[otp_option_value]['.$otp_option_value_row.'][weight_prefix]" value="'.$otp_option_value['weight_prefix'].'"><input type="hidden" name="otp_options[otp_option_value]['.$otp_option_value_row.'][weight]" value="'.$otp_option_value['weight'].'">';
+				}
+				$html .= '<td class="left"><a onclick="$(\'#otp-option-value-row'.$otp_option_value_row.'\').remove();" class="button">'.$button_remove.'</a></td>';
+				$html .= '</tr>';
+				$html .= '</tbody>';
+				$otp_option_value_row++;
+			}
+			$html .= '<tfoot>';
+			$html .= '<tr>';
+			$html .= '<td colspan="'.$otp_colspan.'"></td>';
+			$html .= '<td class="left"><a onclick="addOtpOptionValue();" class="button">'.$button_add_option_value.'</a></td>';
+			$html .= '</tr>';
+			$html .= '</tfoot>';
+			$html .= '</table>';
+			echo $html;
+		}
+	?>
+	</div>
+	<table class="form">
+		<tr>
+			<td><strong>Standard Options:</strong></td>
+		</tr>
+	</table>
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+<div id="tab-image">
+]]></search>
+<add trim="true"><![CDATA[
+<div id="tab-image">
+	<table id="swap-images" class="form">
+		<tr>
+			<td><strong>Option Images:</strong></td>
+			<td>
+				assign to&nbsp;
+				<select name="swap_option" id="swap_option">
+					<option value=""><?php echo $text_select; ?></option>
+					<?php if (!empty($swap_options)) { ?>
+						<?php foreach($swap_options as $option) { ?>
+							<?php if ($swap_option == $option['option_id']) { ?>
+								<option value="<?php echo $option['option_id']; ?>" selected><?php echo $option['name']; ?></option>
+							<?php } else { ?>
+								<option value="<?php echo $option['option_id']; ?>"><?php echo $option['name']; ?></option>
+							<?php } ?>
+						<?php } ?>
+					<?php } ?>
+				</select>
+			</td>
+		</tr>
+	</table>
+	<div id="swap-container">
+	<?php if (!empty($image_swap)) { ?>
+		<?php $image_swap_row = 0; ?>
+		<?php foreach ($image_swap as $swap_data) { ?>
+			<table class="list">
+				<thead>
+					<tr>
+						<td class="left" style="width:50%;">Images for "<?php echo $swap_data['swap_name']; ?>"</td>
+						<td class="right"><?php echo $entry_sort_order; ?></td>
+						<td></td>
+					</tr>
+				</thead>
+				<?php if (!empty($swap_data['images'])) { ?>
+					<?php foreach ($swap_data['images'] as $swap) { ?>
+						<tbody id="image-swap-row<?php echo $image_swap_row; ?>">
+							<tr>
+								<td class="left">
+									<div class="image">
+										<img src="<?php echo $swap['thumb']; ?>" alt="" id="swap-thumb<?php echo $image_swap_row; ?>" />
+										<input type="hidden" name="image_swap[<?php echo $image_swap_row; ?>][id]" value="<?php echo $swap['id']; ?>" />
+										<input type="hidden" name="image_swap[<?php echo $image_swap_row; ?>][option_id]" value="<?php echo $swap['option_id']; ?>" />
+										<input type="hidden" name="image_swap[<?php echo $image_swap_row; ?>][option_value_id]" value="<?php echo $swap['option_value_id']; ?>" />
+										<input type="hidden" name="image_swap[<?php echo $image_swap_row; ?>][name]" value="<?php echo $swap['name']; ?>" />
+										<input type="hidden" name="image_swap[<?php echo $image_swap_row; ?>][image]" value="<?php echo $swap['image']; ?>" id="swap-image<?php echo $image_swap_row; ?>" />
+										<br />
+										<a onclick="image_upload('swap-image<?php echo $image_swap_row; ?>', 'swap-thumb<?php echo $image_swap_row; ?>');"><?php echo $text_browse; ?></a>&nbsp;&nbsp;|&nbsp;&nbsp;<a onclick="$('#swap-thumb<?php echo $image_swap_row; ?>').attr('src', '<?php echo $no_image; ?>'); $('#swap-image<?php echo $image_swap_row; ?>').attr('value', '');"><?php echo $text_clear; ?></a>
+									</div>
+								</td>
+								<td class="right">
+									<input type="text" name="image_swap[<?php echo $image_swap_row; ?>][sort_order]" value="<?php echo $swap['sort_order']; ?>" size="2" />
+								</td>
+								<td class="left">
+									<a onclick="$('#image-swap-row<?php echo $image_swap_row; ?>').remove();" class="button"><?php echo $button_remove; ?></a>
+								</td>
+							</tr>
+						</tbody>
+						<?php $image_swap_row++; ?>
+					<?php } ?>
+				<?php } ?>
+				<tfoot id="tfoot-<?php echo $swap_data['swap_id']; ?>">
+				<tr>
+					<td colspan="2"></td>
+					<td class="left">
+						<a swap_id="<?php echo $swap_data['swap_id']; ?>" swap_name="<?php echo $swap_data['swap_name']; ?>" class="addswapimage button"><?php echo $button_add_image; ?></a>
+					</td>
+				</tr>
+				</tfoot>
+			</table>
+		<?php } ?>
+	<?php } else { ?>
+		<?php $image_swap_row = 0; ?>
+	<?php } ?>
+	</div>
+	<?php if (isset($this->request->get['product_id'])) { ?>
+		<script type="text/javascript">
+			$(document).ready(function(){
+				$('#swap_option').on('change', function(){
+					if ($(this).val() != '') {
+						$.ajax({
+							type: 'GET',
+							url: 'index.php?route=catalog/product/getswapoptionvalues&token=<?php echo $token; ?>',
+							data: { product_id: <?php echo $this->request->get['product_id']; ?>, option_id: $(this).val() },
+							success: function(data){ $('#swap-container').html(data); }
+						});
+					}
+					else {
+						$('#swap-container').html("");
+					}
+				});
+			});
+		</script>
+	<?php } ?>
+	<table class="form">
+		<tr>
+			<td><strong>Standard Images:</strong></td>
+		</tr>
+	</table>
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+<?php echo $footer; ?>
+]]></search>
+<add trim="true"><![CDATA[
+<script type="text/javascript"><!--
+$(document).ready(function(){
+	otpcount_f();
+});
+var otp_option_row = <?php echo $otp_option_row; ?>;
+$('input[name=\'otp-option\']').catcomplete({
+	delay: 500,
+	source: function(request, response) {
+		$.ajax({
+			url: 'index.php?route=catalog/option/autocomplete&token=<?php echo $token; ?>&filter_name=' +  encodeURIComponent(request.term),
+			dataType: 'json',
+			success: function(json) {
+				response($.map(json, function(item) {
+					return {
+						category: item.category,
+						label: item.name,
+						value: item.option_id,
+						type: item.type,
+						option_value: item.option_value
+					}
+				}));
+			}
+		});
+	},
+	select: function(event, ui) {
+		if (ui.item.type == 'select' || ui.item.type == 'list') {
+			$('#otp-option-value').remove();
+			$('#otp-option-add').before('<a id="otp-option-' + otpcount + '" class="selected chosen-otp-option">' + ui.item.label + '&nbsp;<img src="view/image/delete.png" alt="" onclick="$(\'.chosen-otp-option\').remove(); $(\'#tab-otp-option-values\').html(\'\'); otpcount_f(); return false;" /></a>');
+			html  = '<input type="hidden" id="otp_'+otpcount+'_name" name="otp_options[otp_option][' + otpcount + '][name]" value="' + ui.item.label + '" />';
+			html += '<input type="hidden" id="otp_'+otpcount+'_id" name="otp_options[otp_option][' + otpcount + '][option_id]" value="' + ui.item.value + '" />';
+			html += '<select id="otp-option-values-' + otpcount + '" style="display: none;">';
+			for (i = 0; i < ui.item.option_value.length; i++) {
+				html += '<option value="' + ui.item.option_value[i]['option_value_id'] + '">' + ui.item.option_value[i]['name'] + '</option>';
+			}
+			html += '</select>';
+			$('#tab-otp-option-values').append(html);
+			otpcount_f();
+			html  = '<table id="otp-option-value" class="list">';
+			html += '<thead>';
+			html += '<tr>';
+			otp_colspan = 8;
+			html += '<td class="left" id="otp_parent_name">'+$('#otp_0_name').val()+':</td>';
+			if (otpcount > 1) {
+				otp_colspan++;
+				if (otpcount == 2) {
+					html += '<td class="left" id="otp_child_name">'+$('#otp_1_name').val()+':</td>';
+					html += '<td class="left" id="otp_grandchild_name" style="display: none;"></td>';
+				}
+				else {
+					otp_colspan++;
+					html += '<td class="left" id="otp_child_name">'+$('#otp_1_name').val()+':</td>';
+					html += '<td class="left" id="otp_grandchild_name">'+$('#otp_2_name').val()+':</td>';
+				}
+			}
+			html += '<td class="left"><?php echo $entry_model; ?></td>';
+			<?php if ($this->config->get('config_otp_extra')) { ?>
+				html += '<td class="left">Extra:</td>';
+			<?php } else { ?>
+				otp_colspan--;
+			<?php } ?>
+			html += '<td class="left"><?php echo $entry_quantity; ?></td>';
+			html += '<td class="left"><?php echo $entry_subtract; ?></td>';
+			<?php if ($this->config->get('config_otp_price')) { ?>
+				html += '<td class="left"><?php echo $entry_price; ?></td>';
+			<?php } else { ?>
+				otp_colspan--;
+			<?php } ?>
+			<?php if ($this->config->get('config_otp_special')) { ?>
+				html += '<td class="left"><?php echo $tab_special; ?>:</td>';
+			<?php } else { ?>
+				otp_colspan--;
+			<?php } ?>
+			<?php if ($this->config->get('config_otp_weight')) { ?>
+				html += '<td class="left"><?php echo $entry_weight; ?></td>';
+			<?php } else { ?>
+				otp_colspan--;
+			<?php } ?>
+			html += '<td></td>';
+			html += '</tr>';
+			html += '</thead>';
+			html += '<tfoot>';
+			html += '<tr>';
+			html += '<td colspan="' + otp_colspan + '"></td>';
+			html += '<td class="left"><a onclick="addOtpOptionValue();" class="button"><?php echo $button_add_option_value; ?></a></td>';
+			html += '</tr>';
+			html += '</tfoot>';
+			html += '</table>';
+			html += '</div>';
+			$('#tab-otp-option-values').append(html);
+		}
+		else {
+			alert('Option To Product only supports SELECT or LIST type options');
+		}
+		return false;
+	},
+	focus: function(event, ui) {
+		return false;
+	}
+});
+function otpcount_f() {
+	otpcount = 0;
+	$('.chosen-otp-option').each(function(){
+		otpcount++;
+	});
+	if (otpcount < 3) {
+		$('#otp-option-add').css('display','block');
+	}
+	else {
+		$('#otp-option-add').css('display','none');
+	}
+};
+//--></script>
+<script type="text/javascript"><!--
+var otp_option_value_row = <?php echo $otp_option_value_row; ?>;
+function addOtpOptionValue() {
+	html  = '<tbody id="otp-option-value-row' + otp_option_value_row + '">';
+	html += '<tr>';
+	html += '<td class="left">';
+	html += '<input type="hidden" name="otp_options[otp_option_value][' + otp_option_value_row + '][otp]" value="">';
+	html += '<input type="hidden" name="otp_options[otp_option_value][' + otp_option_value_row + '][parent_option_id]" value="'+$('#otp_0_id').val()+'">';
+	html += '<select name="otp_options[otp_option_value][' + otp_option_value_row + '][parent_option_value_id]">';
+	html += $('#otp-option-values-0').html();
+	html += '</select></td>';
+	if (otpcount > 1) {
+		if (otpcount == 2) {
+			html += '<td class="left">';
+			html += '<input type="hidden" name="otp_options[otp_option_value][' + otp_option_value_row + '][child_option_id]" value="'+$('#otp_1_id').val()+'">';
+			html += '<select name="otp_options[otp_option_value][' + otp_option_value_row + '][child_option_value_id]">';
+			html += $('#otp-option-values-1').html();
+			html += '</select></td>';
+			html += '<input type="hidden" name="otp_options[otp_option_value][' + otp_option_value_row + '][grandchild_option_id]" value="">';
+			html += '<input type="hidden" name="otp_options[otp_option_value][' + otp_option_value_row + '][grandchild_option_value_id]" value="">';
+		}
+		else {
+			html += '<td class="left">';
+			html += '<input type="hidden" name="otp_options[otp_option_value][' + otp_option_value_row + '][child_option_id]" value="'+$('#otp_1_id').val()+'">';
+			html += '<select name="otp_options[otp_option_value][' + otp_option_value_row + '][child_option_value_id]">';
+			html += $('#otp-option-values-1').html();
+			html += '</select></td>';
+			html += '<td class="left">';
+			html += '<input type="hidden" name="otp_options[otp_option_value][' + otp_option_value_row + '][grandchild_option_id]" value="'+$('#otp_2_id').val()+'">';
+			html += '<select name="otp_options[otp_option_value][' + otp_option_value_row + '][grandchild_option_value_id]">';
+			html += $('#otp-option-values-2').html();
+			html += '</select></td>';
+		}
+	}
+	else {
+		html += '<input type="hidden" name="otp_options[otp_option_value][' + otp_option_value_row + '][child_option_id]" value=""><input type="hidden" name="otp_options[otp_option_value][' + otp_option_value_row + '][child_option_value_id]" value=""><input type="hidden" name="otp_options[otp_option_value][' + otp_option_value_row + '][grandchild_option_id]" value=""><input type="hidden" name="otp_options[otp_option_value][' + otp_option_value_row + '][grandchild_option_value_id]" value="">';
+	}
+	html += '<td class="left"><input type="text" name="otp_options[otp_option_value][' + otp_option_value_row + '][model]" value="" size="12" /></td>';
+	<?php if ($this->config->get('config_otp_extra')) { ?>
+		html += '<td class="left"><input type="text" name="otp_options[otp_option_value][' + otp_option_value_row + '][extra]" value="" size="12" /></td>';
+	<?php } else { ?>
+		html += '<input type="hidden" name="otp_options[otp_option_value][' + otp_option_value_row + '][extra]" value="">';
+	<?php } ?>
+	html += '<td class="left"><input type="text" class="otp-stock" name="otp_options[otp_option_value][' + otp_option_value_row + '][quantity]" value="" size="5" /></td>';
+	html += '<td class="left"><select name="otp_options[otp_option_value][' + otp_option_value_row + '][subtract]">';
+	html += '<option value="1"><?php echo $text_yes; ?></option>';
+	html += '<option value="0"><?php echo $text_no; ?></option>';
+	html += '</select></td>';
+	<?php if ($this->config->get('config_otp_price')) { ?>
+		html += '<td><select name="otp_options[otp_option_value][' + otp_option_value_row + '][price_prefix]">';
+		html += '<option value="=">=</option>';
+		html += '<option value="+">+</option>';
+		html += '<option value="-">-</option>';
+		html += '</select><input type="text" name="otp_options[otp_option_value][' + otp_option_value_row + '][price]" value="" size="5" /></td>';
+	<?php } else { ?>
+		html += '<input type="hidden" name="otp_options[otp_option_value][' + otp_option_value_row + '][price_prefix]" value=""><input type="hidden" name="otp_options[otp_option_value][' + otp_option_value_row + '][price]" value="">';
+	<?php } ?>
+	<?php if ($this->config->get('config_otp_special')) { ?>
+		html += '<td><input type="text" name="otp_options[otp_option_value][' + otp_option_value_row + '][special]" value="" size="5" /></td>';
+	<?php } else { ?>
+		html += '<input type="hidden" name="otp_options[otp_option_value][' + otp_option_value_row + '][special]" value="">';
+	<?php } ?>
+	<?php if ($this->config->get('config_otp_weight')) { ?>
+		html += '<td><select name="otp_options[otp_option_value][' + otp_option_value_row + '][weight_prefix]">';
+		html += '<option value="=">=</option>';
+		html += '<option value="+">+</option>';
+		html += '<option value="-">-</option>';
+		html += '</select><input type="text" name="otp_options[otp_option_value][' + otp_option_value_row + '][weight]" value="" size="5" /></td>';
+	<?php } else { ?>
+		html += '<input type="hidden" name="otp_options[otp_option_value][' + otp_option_value_row + '][weight_prefix]" value=""><input type="hidden" name="otp_options[otp_option_value][' + otp_option_value_row + '][weight]" value="">';
+	<?php } ?>
+	html += '<td class="left"><a onclick="$(\'#otp-option-value-row' + otp_option_value_row + '\').remove();" class="button"><?php echo $button_remove; ?></a></td>';
+	html += '</tr>';
+	html += '</tbody>';
+	$('#otp-option-value tfoot').before(html);
+	otp_option_value_row++;
+}
+//--></script>
+<script type="text/javascript"><!--
+var image_swap_row = <?php echo $image_swap_row; ?>;
+$(document).on('click', '.addswapimage', function(){
+	html  = '<tbody id="image-swap-row' + image_swap_row + '">';
+	html += '<tr>';
+	html += '<td class="left"><div class="image">';
+	html += '<img src="<?php echo $no_image; ?>" alt="" id="swap-thumb' + image_swap_row + '" />';
+	html += '<input type="hidden" name="image_swap[' + image_swap_row + '][id]" value="" />';
+	html += '<input type="hidden" name="image_swap[' + image_swap_row + '][option_id]" value="' + $('#swap_option').val() + '" />';
+	html += '<input type="hidden" name="image_swap[' + image_swap_row + '][option_value_id]" value="' + $(this).attr("swap_id") + '" />';
+	html += '<input type="hidden" name="image_swap[' + image_swap_row + '][name]" value="' + $(this).attr("swap_name") + '" />';
+	html += '<input type="hidden" name="image_swap[' + image_swap_row + '][image]" value="" id="swap-image' + image_swap_row + '" /><br />';
+	html += '<a onclick="image_upload(\'swap-image' + image_swap_row + '\', \'swap-thumb' + image_swap_row + '\');"><?php echo $text_browse; ?></a>&nbsp;&nbsp;|&nbsp;&nbsp;';
+	html += '<a onclick="$(\'#swap-thumb' + image_swap_row + '\').attr(\'src\', \'<?php echo $no_image; ?>\'); $(\'#swap-image' + image_swap_row + '\').attr(\'value\', \'\');"><?php echo $text_clear; ?></a>';
+	html += '</div></td>';
+	html += '<td class="right"><input type="text" name="image_swap[' + image_swap_row + '][sort_order]" value="0" size="2" /></td>';
+	html += '<td class="left"><a onclick="$(\'#image-swap-row' + image_swap_row  + '\').remove();" class="button"><?php echo $button_remove; ?></a></td>';
+	html += '</tr>';
+	html += '</tbody>';
+	$('#tfoot-' + $(this).attr("swap_id")).before(html);
+	image_swap_row++;
+})
+//--></script>
+<?php echo $footer; ?>
+]]></add>
+</operation>
+</file>
+
+<file name="admin/model/sale/order.php">
+<operation>
+<search position="replace"><![CDATA[
+$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "order_option WHERE order_id = '" . (int)$order_id . "' AND order_option_id = '" . (int)$order_option_id . "'");
+]]></search>
+<add trim="true"><![CDATA[
+$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "order_option WHERE order_id = '" . (int)$order_id . "' AND order_option_id = '" . (int)$order_option_id . "' ORDER BY order_option_id ASC");
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+foreach ($option_query->rows as $option) {
+]]></search>
+<add trim="true"><![CDATA[
+$this->db->query("UPDATE " . DB_PREFIX . "otp_data SET quantity = (quantity + " . (int)$product['quantity'] . ") WHERE otp_id = '" . (int)$product['otp_id'] . "' AND subtract = '1'");
+foreach ($option_query->rows as $option) {
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+reward = '" . (int)$order_product['reward'] . "'
+]]></search>
+<add trim="true"><![CDATA[
+reward = '" . (int)$order_product['reward'] . "', otp_id = '" . (int)$order_product['otp_id'] . "'
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+if (isset($order_product['order_option'])) {
+]]></search>
+<add trim="true"><![CDATA[
+if (isset($order_product['order_option'])) {
+$this->db->query("UPDATE " . DB_PREFIX . "otp_data SET quantity = (quantity - " . (int)$order_product['quantity'] . ") WHERE otp_id = '" . (int)$order_product['otp_id'] . "' AND subtract = '1'");
+]]></add>
+</operation>
+</file>
+
+<file name="admin/controller/sale/order.php">
+<operation>
+<search position="replace"><![CDATA[
+$this->data['order_products'][] = array(
+]]></search>
+<add trim="true"><![CDATA[
+$this->data['order_products'][] = array(
+	'otp_id' => $order_product['otp_id'],
+]]></add>
+</operation>
+</file>
+
+<file name="admin/view/template/sale/order_form.tpl">
+<operation>
+<search position="replace"><![CDATA[
+<input type="hidden" name="order_product[<?php echo $product_row; ?>][order_product_id]" value="<?php echo $order_product['order_product_id']; ?>" />
+]]></search>
+<add trim="true"><![CDATA[
+<input type="hidden" name="order_product[<?php echo $product_row; ?>][otp_id]" value="<?php echo $order_product['otp_id']; ?>" />
+<input type="hidden" name="order_product[<?php echo $product_row; ?>][order_product_id]" value="<?php echo $order_product['order_product_id']; ?>" />
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+price: item.price
+]]></search>
+<add trim="true"><![CDATA[
+price: item.price,
+otpcheck: item.otpcheck,
+otpoption: item.otpoption
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+if (ui.item['option'] != '') {
+]]></search>
+<add trim="true"><![CDATA[
+otphtml = '';
+if (ui.item['otpcheck'] == true) {
+	otphtml += '<input type="hidden" product="' + ui.item['value'] + '" id="otp" name="otp" value="">';
+	for (otpcount = 0; otpcount < ui.item['otpoption'].length; otpcount++) {
+		option = ui.item['otpoption'][otpcount];
+		otphtml += '<div id="option-' + option['option_id'] + '">';
+		if (option['required']) {
+			otphtml += '<span class="required">*</span> ';
+		}
+		otphtml += option['name'] + '<br />';
+		otphtml += '<select name="option[' + option['option_id'] + ']" id="otp-option-' + otpcount + '" option="' + option['option_id'] + '" class="otp-option">';
+		otphtml += '<option value=""><?php echo $text_select; ?></option>';
+		for (j = 0; j < option['option_value'].length; j++) {
+			option_value = option['option_value'][j];
+			otphtml += '<option value="' + option_value['option_value_id'] + '">' + option_value['name'];
+			otphtml += '</option>';
+		}
+		otphtml += '</select>';
+		otphtml += '</div>';
+		otphtml += '<br />';
+	}
+}
+if (ui.item['option'] != '' || ui.item['otpcheck'] == true) {
+]]></add>
+</operation>
+<operation>
+<search position="after" offset="2"><![CDATA[
+if (ui.item['option'] != '' || ui.item['otpcheck'] == true) {
+]]></search>
+<add trim="true"><![CDATA[
+html = otphtml;
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+<?php echo $footer; ?>
+]]></search>
+<add trim="true"><![CDATA[
+<script type="text/javascript"><!--
+	$(document).ready(function(){
+		$(document).on('change', '#otp-option-0', function(){
+			if ($(this).val() != '') {
+				$.ajax({
+					type: 'GET',
+					url: 'index.php?route=catalog/product/getotpchildvalues&token=<?php echo $token; ?>',
+					data: { product_id: $('#otp').attr('product'), child_option_id: $('#otp-option-1').attr('option'), parent_option_value_id: $('#otp-option-0').val() },
+					success: function(data){ $('#otp-option-1').html(data); $('#otp-option-2').html('<option value=""><?php echo $text_select; ?></option>'); }
+				});
+			}
+			else {
+				$('#otp-option-1,#otp-option-2').html('<option value=""><?php echo $text_select; ?></option>');
+			}
+		});
+		$(document).on('change', '#otp-option-1', function(){
+			if ($(this).val() != '') {
+				$.ajax({
+					type: 'GET',
+					url: 'index.php?route=catalog/product/getotpgrandchildvalues&token=<?php echo $token; ?>',
+					data: { product_id: $('#otp').attr('product'), grandchild_option_id: $('#otp-option-2').attr('option'), parent_option_value_id: $('#otp-option-0').val(), child_option_value_id: $('#otp-option-1').val() },
+					success: function(data){ $('#otp-option-2').html(data); }
+				});
+			}
+			else {
+				$('#otp-option-2').html('<option value=""><?php echo $text_select; ?></option>');
+			}
+		});
+		$(document).on('change', '.otp-option', function(){
+			cov_id = 0;
+			if ($('#otp-option-1').val()) {
+				cov_id = $('#otp-option-1').val();
+			}
+			gov_id = 0;
+			if ($('#otp-option-2').val()) {
+				gov_id = $('#otp-option-2').val();
+			}
+			if ($(this).val() != '') {
+				$.ajax({
+					type: 'GET',
+					dataType: 'json',
+					url: 'index.php?route=catalog/product/getotp&token=<?php echo $token; ?>',
+					data: { product_id: $('#otp').attr('product'), parent_option_value_id: $('#otp-option-0').val(), child_option_value_id: cov_id, grandchild_option_value_id: gov_id },
+					success: function(data){
+						if (data) {
+							$('#otp').val(data.id);
+						}
+					}
+				});
+			}
+		});
+	});
+//--></script>
+<?php echo $footer; ?>
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+<input type="hidden" name="order_product[' + product_row + '][order_product_id]" value="" />
+]]></search>
+<add trim="true"><![CDATA[
+<input type="hidden" name="order_product[' + product_row + '][otp_id]" value="' + product['otp_id'] + '" /><input type="hidden" name="order_product[' + product_row + '][order_product_id]" value="" />
+]]></add>
+</operation>
+</file>
+
+<file name="admin/controller/catalog/option.php">
+<operation>
+<search position="replace"><![CDATA[
+$option['type'] == 'image'
+]]></search>
+<add trim="true"><![CDATA[
+$option['type'] == 'image' || $option['type'] == 'list'
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+$type = $this->language->get('text_choose');
+]]></search>
+<add trim="true"><![CDATA[
+if ($option['type'] == 'list') {
+	$type = 'List';
+}
+else {
+	$type = $this->language->get('text_choose');
+}
+]]></add>
+</operation>
+</file>
+
+<file name="admin/view/template/catalog/option_list.tpl">
+<operation>
+<search position="replace"><![CDATA[
+<td class="left"><?php if ($sort == 'od.name') { ?>
+]]></search>
+<add trim="true"><![CDATA[
+<td class="right">ID</td>
+<td class="left"><?php if ($sort == 'od.name') { ?>
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+<td class="left"><?php echo $option['name']; ?></td>
+]]></search>
+<add trim="true"><![CDATA[
+<td class="right"><?php echo $option['option_id']; ?></td>
+<td class="left"><?php echo $option['name']; ?></td>
+]]></add>
+</operation>
+</file>
+
+<file name="admin/view/template/catalog/option_form.tpl">
+<operation>
+<search position="after" offset="4"><![CDATA[
+<?php if ($type == 'image') { ?>
+]]></search>
+<add trim="true"><![CDATA[
+<?php if ($type == 'list') { ?>
+<option value="list" selected>List</option>
+<?php } else { ?>
+<option value="list">List</option>
+<?php } ?>
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+this.value == 'image'
+]]></search>
+<add trim="true"><![CDATA[
+this.value == 'image' || this.value == 'list'
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+<td class="left"><span class="required">*</span> <?php echo $entry_option_value; ?></td>
+]]></search>
+<add trim="true"><![CDATA[
+<td class="right">ID</td>
+<td class="left"><span class="required">*</span> <?php echo $entry_option_value; ?></td>
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+<td class="left"><input type="hidden" name="option_value[<?php echo $option_value_row; ?>][option_value_id]" value="<?php echo $option_value['option_value_id']; ?>" />
+]]></search>
+<add trim="true"><![CDATA[
+<td class="right"><?php echo $option_value['option_value_id']; ?></td>
+<td class="left"><input type="hidden" name="option_value[<?php echo $option_value_row; ?>][option_value_id]" value="<?php echo $option_value['option_value_id']; ?>" />
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+<td class="left"><input type="hidden" name="option_value[' + option_value_row + '][option_value_id]" value="" />
+]]></search>
+<add trim="true"><![CDATA[
+<td></td><td class="left"><input type="hidden" name="option_value[' + option_value_row + '][option_value_id]" value="" />
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+<td colspan="3"></td>
+]]></search>
+<add trim="true"><![CDATA[
+<td colspan="4"></td>
+]]></add>
+</operation>
+</file>
+
+<file name="catalog/controller/checkout/manual.php">
+<operation>
+<search position="replace"><![CDATA[
+$option['type'] == 'select'
+]]></search>
+<add trim="true"><![CDATA[
+$option['type'] == 'select' || $option['type'] == 'list'
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+$this->cart->add($order_product['product_id'], $order_product['quantity'], $option_data);
+]]></search>
+<add trim="true"><![CDATA[
+$this->cart->add($order_product['product_id'], $order_product['quantity'], $option_data, "", $order_product['otp_id']);
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+$product_options = $this->model_catalog_product->getProductOptions($this->request->post['product_id']);
+]]></search>
+<add trim="true"><![CDATA[
+$otp_options = $this->model_catalog_product->getOtpOptions($this->request->post['product_id']);
+if (!empty($otp_options)) {
+	foreach ($otp_options as $otp_option) {
+		if ($otp_option['required'] == 1 && empty($option[$otp_option['option_id']])) {
+			$json['error']['product']['option'][$otp_option['option_id']] = sprintf($this->language->get('error_required'), $otp_option['name']);
+		}
+	}
+}
+$product_options = $this->model_catalog_product->getProductOptions($this->request->post['product_id']);
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+$this->cart->add($this->request->post['product_id'], $quantity, $option);
+]]></search>
+<add trim="true"><![CDATA[
+$otp_id = 0;
+if (isset($this->request->post['otp'])) {
+	$otp_id = $this->request->post['otp'];
+}
+$this->cart->add($this->request->post['product_id'], $quantity, $option, "", $otp_id);
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+$json['order_product'][] = array(
+]]></search>
+<add trim="true"><![CDATA[
+$json['order_product'][] = array(
+	'otp_id' => $product['otp_id'],
+]]></add>
+</operation>
+</file>
+
+<file name="admin/controller/setting/setting.php">
+
+<!--
+<operation info="install">
+<search position="replace"><![CDATA[
+public function index() {
+]]></search>
+<add trim="true"><![CDATA[
+public function index() {
+	$query = $this->db->query("SELECT `setting_id` FROM `" . DB_PREFIX . "setting` WHERE `key` = 'config_otp_stock' LIMIT 1");
+	if (!$query->rows) {
+		$this->db->query("CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "otp_data` (
+			`otp_id` int(11) NOT NULL,
+			`product_id` int(11) NOT NULL,
+			`model` varchar(64) NOT NULL,
+			`extra` varchar(255) NOT NULL,
+			`quantity` int(11) NOT NULL,
+			`subtract` tinyint(1) NOT NULL,
+			`price_prefix` varchar(1) NOT NULL,
+			`price` decimal(15,4) NOT NULL,
+			`special` decimal(15,4) NOT NULL,
+			`weight_prefix` varchar(1) NOT NULL,
+			`weight` decimal(15,4) NOT NULL,
+				PRIMARY KEY (`otp_id`)
+			) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;");
+		$this->db->query("CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "otp_image` (
+			`id` int(11) NOT NULL AUTO_INCREMENT,
+			`product_id` int(11) NOT NULL,
+			`option_id` int(11) NOT NULL,
+			`option_value_id` int(11) NOT NULL,
+			`image` varchar(255) NOT NULL,
+			`sort_order` int(11) NOT NULL,
+			 PRIMARY KEY (`id`)
+			)ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_bin;");
+		$this->db->query("CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "otp_option_value` (
+			`id` int(11) NOT NULL AUTO_INCREMENT,
+			`product_id` int(11) NOT NULL,
+			`parent_option_id` int(11) NOT NULL,
+			`child_option_id` int(11) NOT NULL,
+			`grandchild_option_id` int(11) NOT NULL,
+			`parent_option_value_id` int(11) NOT NULL,
+			`child_option_value_id` int(11) NOT NULL,
+			`grandchild_option_value_id` int(11) NOT NULL,
+				PRIMARY KEY (`id`)
+			) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;");
+		$this->db->query("ALTER TABLE `" . DB_PREFIX . "order_product` ADD `otp_id` int(11) NOT NULL");
+		$this->db->query("INSERT INTO `" . DB_PREFIX . "setting` (`store_id`, `group`, `key`, `value`, `serialized`) VALUES
+			(0, 'config', 'config_otp_stock', '1', 0),
+			(0, 'config', 'config_otp_extra', '1', 0),
+			(0, 'config', 'config_otp_price', '1', 0),
+			(0, 'config', 'config_otp_special', '1', 0),
+			(0, 'config', 'config_otp_weight', '1', 0),
+			(0, 'config', 'config_otp_list_image', '1', 0),
+			(0, 'config', 'config_otp_list_width', '24', 0),
+			(0, 'config', 'config_otp_list_height', '24', 0),
+			(0, 'config', 'config_otp_list_radius', '0', 0),
+			(0, 'config', 'config_otp_bullet', '1', 0),
+			(0, 'config', 'config_otp_bullet_width', '18', 0),
+			(0, 'config', 'config_otp_bullet_height', '18', 0),
+			(0, 'config', 'config_otp_bullet_radius', '0', 0),
+			(0, 'config', 'config_otp_tool', '1', 0),
+			(0, 'config', 'config_otp_csv', ',', 0);");
+		header('Refresh: 0');
+	}
+]]></add>
+</operation>
+-->
+<operation>
+<search position="replace"><![CDATA[
+if (isset($this->request->post['config_catalog_limit'])) {
+]]></search>
+<add trim="true"><![CDATA[
+if (isset($this->request->post['config_otp_stock'])) {
+	$this->data['config_otp_stock'] = $this->request->post['config_otp_stock'];
+} else {
+	$this->data['config_otp_stock'] = $this->config->get('config_otp_stock');
+}
+if (isset($this->request->post['config_otp_extra'])) {
+	$this->data['config_otp_extra'] = $this->request->post['config_otp_extra'];
+} else {
+	$this->data['config_otp_extra'] = $this->config->get('config_otp_extra');
+}
+if (isset($this->request->post['config_otp_price'])) {
+	$this->data['config_otp_price'] = $this->request->post['config_otp_price'];
+} else {
+	$this->data['config_otp_price'] = $this->config->get('config_otp_price');
+}
+if (isset($this->request->post['config_otp_special'])) {
+	$this->data['config_otp_special'] = $this->request->post['config_otp_special'];
+} else {
+	$this->data['config_otp_special'] = $this->config->get('config_otp_special');
+}
+if (isset($this->request->post['config_otp_weight'])) {
+	$this->data['config_otp_weight'] = $this->request->post['config_otp_weight'];
+} else {
+	$this->data['config_otp_weight'] = $this->config->get('config_otp_weight');
+}
+if (isset($this->request->post['config_otp_list_image'])) {
+	$this->data['config_otp_list_image'] = $this->request->post['config_otp_list_image'];
+} else {
+	$this->data['config_otp_list_image'] = $this->config->get('config_otp_list_image');
+}
+if (isset($this->request->post['config_otp_list_width'])) {
+	$this->data['config_otp_list_width'] = $this->request->post['config_otp_list_width'];
+} else {
+	$this->data['config_otp_list_width'] = $this->config->get('config_otp_list_width');
+}
+if (isset($this->request->post['config_otp_list_height'])) {
+	$this->data['config_otp_list_height'] = $this->request->post['config_otp_list_height'];
+} else {
+	$this->data['config_otp_list_height'] = $this->config->get('config_otp_list_height');
+}
+if (isset($this->request->post['config_otp_list_radius'])) {
+	$this->data['config_otp_list_radius'] = $this->request->post['config_otp_list_radius'];
+} else {
+	$this->data['config_otp_list_radius'] = $this->config->get('config_otp_list_radius');
+}
+if (isset($this->request->post['config_otp_bullet'])) {
+	$this->data['config_otp_bullet'] = $this->request->post['config_otp_bullet'];
+} else {
+	$this->data['config_otp_bullet'] = $this->config->get('config_otp_bullet');
+}
+if (isset($this->request->post['config_otp_bullet_width'])) {
+	$this->data['config_otp_bullet_width'] = $this->request->post['config_otp_bullet_width'];
+} else {
+	$this->data['config_otp_bullet_width'] = $this->config->get('config_otp_bullet_width');
+}
+if (isset($this->request->post['config_otp_bullet_height'])) {
+	$this->data['config_otp_bullet_height'] = $this->request->post['config_otp_bullet_height'];
+} else {
+	$this->data['config_otp_bullet_height'] = $this->config->get('config_otp_bullet_height');
+}
+if (isset($this->request->post['config_otp_bullet_radius'])) {
+	$this->data['config_otp_bullet_radius'] = $this->request->post['config_otp_bullet_radius'];
+} else {
+	$this->data['config_otp_bullet_radius'] = $this->config->get('config_otp_bullet_radius');
+}
+if (isset($this->request->post['config_otp_tool'])) {
+	$this->data['config_otp_tool'] = $this->request->post['config_otp_tool'];
+} else {
+	$this->data['config_otp_tool'] = $this->config->get('config_otp_tool');
+}
+if (isset($this->request->post['config_otp_csv'])) {
+  $this->data['config_otp_csv'] = $this->request->post['config_otp_csv'];
+} else {
+  $this->data['config_otp_csv'] = $this->config->get('config_otp_csv');
+}
+if (isset($this->request->post['config_catalog_limit'])) {
+]]></add>
+</operation>
+</file>
+
+<file name="admin/view/template/setting/setting.tpl">
+<operation>
+<search position="replace"><![CDATA[
+<a href="#tab-server"><?php echo $tab_server; ?></a>
+]]></search>
+<add trim="true"><![CDATA[
+<a href="#tab-server"><?php echo $tab_server; ?></a><a href="#tab-option-to-product">OTP</a>
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+<div id="tab-server">
+]]></search>
+<add trim="true"><![CDATA[
+<div id="tab-option-to-product">
+	<table class="form">
+		<tr>
+			<td>Enable Stock Count:<br>
+			<span class="help">Show available product count on option selection.</span></td>
+			<td><?php if ($config_otp_stock) { ?>
+			<input type="radio" name="config_otp_stock" value="1" checked="checked" />
+			<?php echo $text_yes; ?>
+			<input type="radio" name="config_otp_stock" value="0" />
+			<?php echo $text_no; ?>
+			<?php } else { ?>
+			<input type="radio" name="config_otp_stock" value="1" />
+			<?php echo $text_yes; ?>
+			<input type="radio" name="config_otp_stock" value="0" checked="checked" />
+			<?php echo $text_no; ?>
+			<?php } ?></td>
+		</tr>
+		<tr>
+			<td>Enable Extra Text:<br>
+			<span class="help">Show and enable individual extra text for each option combination.</span></td>
+			<td><?php if ($config_otp_extra) { ?>
+			<input type="radio" name="config_otp_extra" value="1" checked="checked" />
+			<?php echo $text_yes; ?>
+			<input type="radio" name="config_otp_extra" value="0" />
+			<?php echo $text_no; ?>
+			<?php } else { ?>
+			<input type="radio" name="config_otp_extra" value="1" />
+			<?php echo $text_yes; ?>
+			<input type="radio" name="config_otp_extra" value="0" checked="checked" />
+			<?php echo $text_no; ?>
+			<?php } ?></td>
+		</tr>
+		<tr>
+			<td>Enable Price:<br>
+			<span class="help">Show and enable individual price for each option combination.</span></td>
+			<td><?php if ($config_otp_price) { ?>
+			<input type="radio" name="config_otp_price" value="1" checked="checked" />
+			<?php echo $text_yes; ?>
+			<input type="radio" name="config_otp_price" value="0" />
+			<?php echo $text_no; ?>
+			<?php } else { ?>
+			<input type="radio" name="config_otp_price" value="1" />
+			<?php echo $text_yes; ?>
+			<input type="radio" name="config_otp_price" value="0" checked="checked" />
+			<?php echo $text_no; ?>
+			<?php } ?></td>
+		</tr>
+		<tr>
+			<td>Enable Special Price:<br>
+			<span class="help">Show and enable individual special price for each option combination.</span></td>
+			<td><?php if ($config_otp_special) { ?>
+			<input type="radio" name="config_otp_special" value="1" checked="checked" />
+			<?php echo $text_yes; ?>
+			<input type="radio" name="config_otp_special" value="0" />
+			<?php echo $text_no; ?>
+			<?php } else { ?>
+			<input type="radio" name="config_otp_special" value="1" />
+			<?php echo $text_yes; ?>
+			<input type="radio" name="config_otp_special" value="0" checked="checked" />
+			<?php echo $text_no; ?>
+			<?php } ?></td>
+		</tr>
+		<tr>
+			<td>Enable Weight:<br>
+			<span class="help">Show and enable individual weight for each option combination.</span></td>
+			<td><?php if ($config_otp_weight) { ?>
+			<input type="radio" name="config_otp_weight" value="1" checked="checked" />
+			<?php echo $text_yes; ?>
+			<input type="radio" name="config_otp_weight" value="0" />
+			<?php echo $text_no; ?>
+			<?php } else { ?>
+			<input type="radio" name="config_otp_weight" value="1" />
+			<?php echo $text_yes; ?>
+			<input type="radio" name="config_otp_weight" value="0" checked="checked" />
+			<?php echo $text_no; ?>
+			<?php } ?></td>
+		</tr>
+		<tr>
+			<td>List Option Image:<br>
+			<span class="help">Image used for list type options.</span></td>
+			<td><?php if ($config_otp_list_image) { ?>
+			<input type="radio" name="config_otp_list_image" value="1" checked="checked" />
+			Option Image
+			<input type="radio" name="config_otp_list_image" value="0" />
+			Product Image
+			<?php } else { ?>
+			<input type="radio" name="config_otp_list_image" value="1" />
+			Option Image
+			<input type="radio" name="config_otp_list_image" value="0" checked="checked" />
+			Product Image
+			<?php } ?></td>
+		</tr>
+		<tr>
+			<td>List Option Style:<br>
+			<span class="help">List type option properties.</span></td>
+			<td>
+				Width: <input type="text" name="config_otp_list_width" value="<?php if ($config_otp_list_width) { echo $config_otp_list_width; } ?>" size="5" /> px
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				Height: <input type="text" name="config_otp_list_height" value="<?php if ($config_otp_list_height) { echo $config_otp_list_height; } ?>" size="5" /> px
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				Border Radius: <input type="text" name="config_otp_list_radius" value="<?php if (isset($config_otp_list_radius)) { echo $config_otp_list_radius; } ?>" size="5" /> px
+			</td>
+		</tr>
+		<tr>
+			<td>Enable Option Bullets:<br>
+			<span class="help">Show option images as bullets and enable image swapping on product listings.</span></td>
+			<td><?php if ($config_otp_bullet) { ?>
+			<input type="radio" name="config_otp_bullet" value="1" checked="checked" />
+			<?php echo $text_yes; ?>
+			<input type="radio" name="config_otp_bullet" value="0" />
+			<?php echo $text_no; ?>
+			<?php } else { ?>
+			<input type="radio" name="config_otp_bullet" value="1" />
+			<?php echo $text_yes; ?>
+			<input type="radio" name="config_otp_bullet" value="0" checked="checked" />
+			<?php echo $text_no; ?>
+			<?php } ?></td>
+		</tr>
+		<tr>
+			<td>Option Bullet Style:<br>
+			<span class="help">Option image bullet properties.</span></td>
+			<td>
+				Width: <input type="text" name="config_otp_bullet_width" value="<?php if ($config_otp_bullet_width) { echo $config_otp_bullet_width; } ?>" size="5" /> px
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				Height: <input type="text" name="config_otp_bullet_height" value="<?php if ($config_otp_bullet_height) { echo $config_otp_bullet_height; } ?>" size="5" /> px
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				Border Radius: <input type="text" name="config_otp_bullet_radius" value="<?php if (isset($config_otp_bullet_radius)) { echo $config_otp_bullet_radius; } ?>" size="5" /> px
+			</td>
+		</tr>
+		<tr>
+			<td>Enable Import / Export Tool:<br>
+			<span class="help">Show option combination and image data Import/Export form.</span></td>
+			<td><?php if ($config_otp_tool) { ?>
+			<input type="radio" name="config_otp_tool" value="1" checked="checked" />
+			<?php echo $text_yes; ?>
+			<input type="radio" name="config_otp_tool" value="0" />
+			<?php echo $text_no; ?>
+			<?php } else { ?>
+			<input type="radio" name="config_otp_tool" value="1" />
+			<?php echo $text_yes; ?>
+			<input type="radio" name="config_otp_tool" value="0" checked="checked" />
+			<?php echo $text_no; ?>
+			<?php } ?></td>
+		</tr>
+		<tr>
+			<td>CSV Column Separator:<br>
+			<span class="help">Depending on your machine, you need to enter "," or ";".</span></td>
+			<td>
+			<input type="text" name="config_otp_csv" value="<?php if ($config_otp_csv) { echo $config_otp_csv; } ?>" size="5" />
+			</td>
+		</tr>
+	</table>
+</div>
+<div id="tab-server">
+]]></add>
+</operation>
+</file>
+
+<file name="catalog/model/catalog/product.php">
+<operation>
+<search position="replace"><![CDATA[
+public function getProduct($product_id) {
+]]></search>
+<add trim="true"><![CDATA[
+public function getOtpOptions($product_id) {
+	$stock_checkout = $this->config->get('config_stock_checkout');
+	$otp_option_data = '';
+	$otp_option_list = array();
+	$otp_query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "otp_option_value` WHERE product_id = '" . (int)$product_id . "' LIMIT 1");
+	if ($otp_query->num_rows) {
+		$options = $otp_query->row;
+		if ($options['parent_option_id'] != 0) { $otp_options[] = $options['parent_option_id']; }
+		if ($options['child_option_id'] != 0) { $otp_options[] = $options['child_option_id']; }
+		if ($options['grandchild_option_id'] != 0) { $otp_options[] = $options['grandchild_option_id']; }
+		foreach ($otp_options as $otp_option_id) {
+			$otp_option_query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "option` o INNER JOIN `" . DB_PREFIX . "option_description` od ON (o.option_id = od.option_id) WHERE o.option_id = '$otp_option_id' AND od.language_id = '" . (int)$this->config->get('config_language_id') . "' LIMIT 1");
+			$otp_option = $otp_option_query->row;
+			$otp_option_list[] = array(
+				'option_id'            => $otp_option_id,
+				'name'                 => $otp_option['name'],
+				'type'                 => $otp_option['type']
+			);
+		}
+	}
+	if (!empty($otp_option_list)) {
+		$otpcount = 0;
+		foreach ($otp_option_list as $otp_option) {
+			$otp_option_value_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "option_value ov LEFT JOIN " . DB_PREFIX . "option_value_description ovd ON (ov.option_value_id = ovd.option_value_id) WHERE ov.option_id = '" . (int)$otp_option['option_id'] . "' AND ovd.language_id = '" . (int)$this->config->get('config_language_id') . "' ORDER BY ov.sort_order ASC");
+			$otp_option_value_data = array();
+			if ($otpcount == 0) {
+				$this->load->model('tool/image');
+				$otp_option_value_list_query = $this->db->query("SELECT ov.parent_option_value_id FROM `" . DB_PREFIX . "otp_option_value` ov INNER JOIN `" . DB_PREFIX . "otp_data` od ON ov.id = od.otp_id WHERE ov.parent_option_id = '" . (int)$otp_option['option_id'] . "' AND ov.product_id = '" . (int)$product_id . "'" . (!$stock_checkout?' AND od.quantity > 0':''));
+				$otp_option_value_list = array();
+				foreach ($otp_option_value_list_query->rows as $otp_option_available_value) {
+					$otp_option_value_list[] = $otp_option_available_value['parent_option_value_id'];
+				}
+				foreach ($otp_option_value_query->rows as $otp_option_value) {
+					if (in_array($otp_option_value['option_value_id'], $otp_option_value_list)) {
+						$option_value_image = $otp_option_value['image'];
+						if (!$this->config->get('config_otp_list_image')) {
+							$otp_option_image_query = $this->db->query("SELECT `image` FROM `" . DB_PREFIX . "otp_image` WHERE `product_id` = '" . (int)$product_id . "' AND `option_value_id` = '" . (int)$otp_option_value['option_value_id'] . "' ORDER BY sort_order, id LIMIT 1");
+							if ($otp_option_image_query->num_rows) {
+								$option_value_image = $otp_option_image_query->row['image'];
+							}
+						}
+						if ($option_value_image != '' && $option_value_image != 'no_image.jpg') {
+							$option_value_image = $this->model_tool_image->resize($option_value_image, $this->config->get('config_otp_list_width'), $this->config->get('config_otp_list_height'));
+						}
+						$otp_option_value_data[] = array(
+							'option_value_id' => $otp_option_value['option_value_id'],
+							'name'            => $otp_option_value['name'],
+							'image'           => $option_value_image,
+							'sort_order'      => $otp_option_value['sort_order']
+						);
+					}
+				}
+			}
+			else {
+				$otp_option_value_data = '';
+			}
+			$otp_option_data[] = array(
+				'option_id'            => $otp_option['option_id'],
+				'name'                 => $otp_option['name'],
+				'type'                 => $otp_option['type'],
+				'option_value'         => $otp_option_value_data,
+				'required'             => '1'
+			);
+			$otpcount++;
+		}
+	}
+	return $otp_option_data;
+}
+public function getOtpChildValues($product_id, $child_option_id, $parent_option_value_id, $mode) {
+	$stock_checkout = $this->config->get('config_stock_checkout');
+	$otp_child_query = $this->db->query("SELECT ov.child_option_value_id FROM `" . DB_PREFIX . "otp_option_value` ov INNER JOIN `" . DB_PREFIX . "otp_data` od ON ov.id = od.otp_id WHERE ov.product_id = '" . (int)$product_id . "' AND ov.parent_option_value_id = '" . (int)$parent_option_value_id . "'" . (!$stock_checkout?' AND od.quantity > 0':''));
+	foreach ($otp_child_query->rows as $child_value) {
+		$otp_child_value_list[] = $child_value['child_option_value_id'];
+	}
+	$otp_option_value_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "option_value ov LEFT JOIN " . DB_PREFIX . "option_value_description ovd ON (ov.option_value_id = ovd.option_value_id) WHERE ov.option_id = '" . (int)$child_option_id . "' AND ovd.language_id = '" . (int)$this->config->get('config_language_id') . "' ORDER BY ov.sort_order ASC");
+	if ($mode == 'select') {
+		$child_values = '<option value="">'.$this->language->get('text_select').'</option>';
+		foreach ($otp_option_value_query->rows as $otp_option_value) {
+			if (in_array($otp_option_value['option_value_id'], $otp_child_value_list)) {
+				$child_values .= '<option value="'.$otp_option_value['option_value_id'].'">'.$otp_option_value['name'].'</option>';
+			}
+		}
+	}
+	elseif ($mode == 'list') {
+		$this->load->model('tool/image');
+		$child_values = '';
+		foreach ($otp_option_value_query->rows as $otp_option_value) {
+			if (in_array($otp_option_value['option_value_id'], $otp_child_value_list)) {
+				$child_values .= '<li value="'.$otp_option_value['option_value_id'].'">';
+				$option_value_image = $otp_option_value['image'];
+				if (!$this->config->get('config_otp_list_image')) {
+					$otp_option_image_query = $this->db->query("SELECT `image` FROM `" . DB_PREFIX . "otp_image` WHERE `product_id` = '" . (int)$product_id . "' AND `option_value_id` = '" . (int)$otp_option_value['option_value_id'] . "' ORDER BY sort_order, id LIMIT 1");
+					if ($otp_option_image_query->num_rows) {
+						$option_value_image = $otp_option_image_query->row['image'];
+					}
+				}
+				if ($option_value_image != '' && $option_value_image != 'no_image.jpg') {
+					$otp_image = $this->model_tool_image->resize($option_value_image, $this->config->get('config_otp_list_width'), $this->config->get('config_otp_list_height'));
+					$child_values .= '<img src="' . $otp_image . '">';
+				}
+				else {
+					$child_values .= '<span>' . $otp_option_value['name'] . '</span>';
+				}
+				$child_values .= '</li>';
+			}
+		}
+	}
+	return $child_values;
+}
+public function getOtpGrandchildValues($product_id, $grandchild_option_id, $parent_option_value_id, $child_option_value_id, $mode) {
+	$stock_checkout = $this->config->get('config_stock_checkout');
+	$otp_grandchild_query = $this->db->query("SELECT ov.grandchild_option_value_id FROM `" . DB_PREFIX . "otp_option_value` ov INNER JOIN `" . DB_PREFIX . "otp_data` od ON ov.id = od.otp_id WHERE ov.product_id = '" . (int)$product_id . "' AND ov.parent_option_value_id = '" . (int)$parent_option_value_id . "' AND ov.child_option_value_id = '" . (int)$child_option_value_id . "'" . (!$stock_checkout?' AND od.quantity > 0':''));
+	foreach ($otp_grandchild_query->rows as $grandchild_value) {
+		$otp_grandchild_value_list[] = $grandchild_value['grandchild_option_value_id'];
+	}
+	$otp_option_value_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "option_value ov LEFT JOIN " . DB_PREFIX . "option_value_description ovd ON (ov.option_value_id = ovd.option_value_id) WHERE ov.option_id = '" . (int)$grandchild_option_id . "' AND ovd.language_id = '" . (int)$this->config->get('config_language_id') . "' ORDER BY ov.sort_order ASC");
+	if ($mode == 'select') {
+		$grandchild_values = '<option value="">'.$this->language->get('text_select').'</option>';
+		foreach ($otp_option_value_query->rows as $otp_option_value) {
+			if (in_array($otp_option_value['option_value_id'], $otp_grandchild_value_list)) {
+				$grandchild_values .= '<option value="'.$otp_option_value['option_value_id'].'">'.$otp_option_value['name'].'</option>';
+			}
+		}
+	}
+	elseif ($mode == 'list') {
+		$this->load->model('tool/image');
+		$grandchild_values = '';
+		foreach ($otp_option_value_query->rows as $otp_option_value) {
+			if (in_array($otp_option_value['option_value_id'], $otp_grandchild_value_list)) {
+				$grandchild_values .= '<li value="'.$otp_option_value['option_value_id'].'">';
+				$option_value_image = $otp_option_value['image'];
+				if (!$this->config->get('config_otp_list_image')) {
+					$otp_option_image_query = $this->db->query("SELECT `image` FROM `" . DB_PREFIX . "otp_image` WHERE `product_id` = '" . (int)$product_id . "' AND `option_value_id` = '" . (int)$otp_option_value['option_value_id'] . "' ORDER BY sort_order, id LIMIT 1");
+					if ($otp_option_image_query->num_rows) {
+						$option_value_image = $otp_option_image_query->row['image'];
+					}
+				}
+				if ($option_value_image != '' && $option_value_image != 'no_image.jpg') {
+					$otp_image = $this->model_tool_image->resize($option_value_image, $this->config->get('config_otp_list_width'), $this->config->get('config_otp_list_height'));
+					$grandchild_values .= '<img src="' . $otp_image . '">';
+				}
+				else {
+					$grandchild_values .= '<span>' . $otp_option_value['name'] . '</span>';
+				}
+				$grandchild_values .= '</li>';
+			}
+		}
+	}
+	return $grandchild_values;
+}
+public function getOtp($product_id, $parent_option_value_id, $child_option_value_id, $grandchild_option_value_id) {
+	$otp_query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "otp_option_value` ov INNER JOIN `" . DB_PREFIX . "otp_data` od ON ov.id = od.otp_id WHERE ov.product_id = '" . (int)$product_id . "' AND ov.parent_option_value_id = '" . (int)$parent_option_value_id . "' AND ov.child_option_value_id = '" . (int)$child_option_value_id . "' AND ov.grandchild_option_value_id = '" . (int)$grandchild_option_value_id . "' LIMIT 1");
+	$otp = $otp_query->rows;
+	if (!empty($otp)) {
+		$product_query = $this->db->query("SELECT p.price AS price, s.price AS special FROM `" . DB_PREFIX . "product` p LEFT JOIN `" . DB_PREFIX . "product_special` s ON p.product_id = s.product_id WHERE p.product_id = '" . (int)$product_id . "' LIMIT 1");
+		$product_price = $product_query->rows;
+		if ($product_price[0]['special'] > 0) { $product_price = $product_price[0]['special']; }
+		else { $product_price = $product_price[0]['price']; }
+		if ($this->config->get('config_otp_price') && $otp[0]['price'] > 0) {
+			if ($otp[0]['price_prefix'] == "=") { $otp_price = $otp[0]['price']; }
+			elseif ($otp[0]['price_prefix'] == "+") { $otp_price = $product_price + $otp[0]['price']; }
+			else { $otp_price = $product_price - $otp[0]['price']; }
+		}
+		else {
+			$otp_price = 0;
+		}
+		if ($this->config->get('config_otp_special') && $otp[0]['special'] > 0) {
+			$otp_special = $otp[0]['special'];
+		}
+		else {
+			$otp_special = 0;
+		}
+		$otp_data = array(
+			'id' => $otp[0]['id'],
+			'model' => $otp[0]['model'],
+			'extra' => $otp[0]['extra'],
+			'quantity' => $otp[0]['quantity'],
+			'subtract' => $otp[0]['subtract'],
+			'price' => $otp_price,
+			'special' => $otp_special
+		);
+	}
+	else {
+		$otp_data = '';
+	}
+	return $otp_data;
+}
+public function checkSwap($product_id) {
+	$query = $this->db->query("SELECT option_id FROM `" . DB_PREFIX . "otp_image` WHERE `product_id` = " . (int)$product_id . " LIMIT 1");
+	if ($query->num_rows) {
+		return $query->row['option_id'];
+	}
+	else {
+		return false;
+	}
+}
+public function getSwapBullets($product_id) {
+	$query = $this->db->query("SELECT swap.option_value_id, swap.thumb, swap.image, swap.name FROM (SELECT sw.option_value_id, sw.image AS thumb, ov.image, ovd.name FROM `" . DB_PREFIX . "otp_image` sw INNER JOIN " . DB_PREFIX . "option_value ov ON (sw.option_value_id = ov.option_value_id) INNER JOIN " . DB_PREFIX . "option_value_description ovd ON (sw.option_value_id = ovd.option_value_id) WHERE sw.product_id = '" . (int)$product_id . "' AND ovd.language_id = '" . (int)$this->config->get('config_language_id') . "' ORDER BY sw.sort_order, sw.id ASC) AS swap GROUP BY swap.option_value_id");
+	return $query->rows;
+}
+public function getSwapThumbs($product_id) {
+	$query = $this->db->query("SELECT swap.option_value_id, swap.name, swap.image FROM (SELECT sw.option_value_id, ovd.name, sw.image FROM `" . DB_PREFIX . "otp_image` sw INNER JOIN " . DB_PREFIX . "option_value_description ovd ON (sw.option_value_id = ovd.option_value_id) WHERE sw.product_id = '" . (int)$product_id . "' AND ovd.language_id = '" . (int)$this->config->get('config_language_id') . "' ORDER BY sw.sort_order, sw.id ASC) AS swap GROUP BY swap.option_value_id");
+	return $query->rows;
+}
+public function getSwapImages($product_id, $option_value_id) {
+	$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "otp_image` sw INNER JOIN " . DB_PREFIX . "option_value_description ovd ON (sw.option_value_id = ovd.option_value_id) WHERE sw.product_id = '" . (int)$product_id . "' AND sw.option_value_id = '" . (int)$option_value_id . "' AND ovd.language_id = '" . (int)$this->config->get('config_language_id') . "' ORDER BY sw.sort_order, sw.id ASC");
+	return $query->rows;
+}
+public function getStartingFrom($product_id) {
+	$price_list = array();
+	$price = $this->db->query("SELECT `price` FROM `" . DB_PREFIX . "product` WHERE `product_id` = '" . (int)$product_id . "'")->row['price'];
+	if ($price > 0) {
+		$price_list[] = $price;
+	}
+	if ($this->customer->isLogged()) {
+		$customer_group_id = $this->customer->getCustomerGroupId();
+	} else {
+		$customer_group_id = $this->config->get('config_customer_group_id');
+	}
+	$query = $this->db->query("SELECT `price` FROM " . DB_PREFIX . "product_special WHERE `product_id` = '" . (int)$product_id . "' AND `customer_group_id` = '" . (int)$customer_group_id . "' AND ((`date_start` = '0000-00-00' OR `date_start` < NOW()) AND (`date_end` = '0000-00-00' OR `date_end` > NOW())) AND `price` > 0 ORDER BY `priority` ASC, `price` ASC LIMIT 1");
+	if ($query->num_rows) {
+		$price_list[] = $query->row['price'];
+	}
+	$count = 0;
+	if ($this->config->get('config_otp_price')) {
+		$query = $this->db->query("SELECT `price_prefix`, `price` FROM `" . DB_PREFIX . "otp_data` WHERE `product_id` = '" . (int)$product_id . "' AND `price` > 0");
+		if ($query->num_rows) {
+			foreach ($query->rows as $combination) {
+				$count++;
+				if ($combination['price_prefix'] == '=') {
+					$price_list[] = $combination['price'];
+				}
+				else {
+					if ($combination['price_prefix'] == '+') {
+						$price_list[] = $price + $combination['price'];
+					}
+					else {
+						$price_list[] = $price - $combination['price'];
+					}
+				}
+			}
+		}
+	}
+	if ($this->config->get('config_otp_special')) {
+		$query = $this->db->query("SELECT `special` FROM `" . DB_PREFIX . "otp_data` WHERE `product_id` = '" . (int)$product_id . "' AND `special` > 0");
+		if ($query->num_rows) {
+			foreach ($query->rows as $combination) {
+				$count++;
+				$price_list[] = $combination['special'];
+			}
+		}
+	}
+	if ($count > 0) {
+		return min($price_list);
+	}
+	else {
+		return false;
+	}
+}
+public function getProduct($product_id) {
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+($query->row['discount'] ? $query->row['discount'] : $query->row['price']),
+]]></search>
+<add trim="true"><![CDATA[
+($query->row['discount'] ? $query->row['discount'] : $query->row['price']),
+'starting_from' => $this->getStartingFrom($product_id),
+]]></add>
+</operation>
+</file>
+
+<file name="catalog/controller/product/product.php">
+<operation>
+<search position="replace"><![CDATA[
+$this->data['text_select'] = $this->language->get('text_select');
+]]></search>
+<add trim="true"><![CDATA[
+$this->data['text_select'] = $this->language->get('text_select');
+$this->data['text_starting_from'] = $this->language->get('text_starting_from');
+$this->data['text_unavailable'] = $this->language->get('text_unavailable');
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+$this->data['options'] = array();
+]]></search>
+<add trim="true"><![CDATA[
+$this->data['options'] = array();
+$this->data['otp_options'] = $this->model_catalog_product->getOtpOptions($this->request->get['product_id']);
+if ($product_info['starting_from']) {
+	$this->data['starting_from'] = $this->language->get('text_starting_from') . ' ' . $this->currency->format($this->tax->calculate($product_info['starting_from'], $product_info['tax_class_id'], $this->config->get('config_tax')));
+	if ($this->config->get('config_tax')) {
+		$this->data['tax'] = $this->currency->format($product_info['starting_from']);
+	} else {
+		$this->data['tax'] = false;
+	}
+}
+else {
+	$this->data['starting_from'] = false;
+}
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+private $error = array();
+]]></search>
+<add trim="true"><![CDATA[
+private $error = array();
+public function getotpchildvalues() {
+	$this->load->model('catalog/product');
+	$child_values = $this->model_catalog_product->getOtpChildValues($this->request->get['product_id'], $this->request->get['child_option_id'], $this->request->get['parent_option_value_id'], $this->request->get['mode']);
+	echo $child_values;
+}
+public function getotpgrandchildvalues() {
+	$this->load->model('catalog/product');
+	$grandchild_values = $this->model_catalog_product->getOtpGrandchildValues($this->request->get['product_id'], $this->request->get['grandchild_option_id'], $this->request->get['parent_option_value_id'], $this->request->get['child_option_value_id'], $this->request->get['mode']);
+	echo $grandchild_values;
+}
+public function getotp() {
+	$this->load->model('catalog/product');
+	$this->language->load('product/product');
+	$otp = $this->model_catalog_product->getOtp($this->request->get['product_id'], $this->request->get['parent_option_value_id'], $this->request->get['child_option_value_id'], $this->request->get['grandchild_option_value_id']);
+	if ($otp) {
+		$product_info = $this->model_catalog_product->getProduct($this->request->get['product_id']);
+		if ($this->config->get('config_tax') && ($this->config->get('config_otp_price') && $otp['price'] > 0 || $this->config->get('config_otp_special') && $otp['special'] > 0)) { $otp['tax'] = $this->currency->format((float)($otp['special'] > 0?$otp['special']:$otp['price'])); }
+		else { $otp['tax'] = 0; }
+		if ($this->config->get('config_otp_price') && $otp['price'] > 0) {
+			if (($this->config->get('config_customer_price') && $this->customer->isLogged()) || !$this->config->get('config_customer_price')) {
+				$otp['price'] = $this->currency->format($this->tax->calculate($otp['price'], $product_info['tax_class_id'], $this->config->get('config_tax')));
+			}
+		}
+		else {
+			$otp['price'] = 0;
+		}
+		if ($this->config->get('config_otp_special') && $otp['special'] > 0) {
+			$otp['special'] = $this->currency->format($this->tax->calculate($otp['special'], $product_info['tax_class_id'], $this->config->get('config_tax')));
+		}
+		else {
+			$otp['special'] = 0;
+		}
+		$product_id = $this->request->get['product_id'];
+		$out_of_stock = $this->db->query("SELECT ss.name FROM " . DB_PREFIX . "product p INNER JOIN " . DB_PREFIX . "stock_status ss ON ss.stock_status_id = p.stock_status_id WHERE p.product_id = '" . (int)$product_id . "' AND ss.language_id = '" . (int)$this->config->get('config_language_id') . "' LIMIT 1")->row['name'];
+		$otp['stock'] = $this->language->get('text_instock');
+		if ($otp['subtract'] == 1) {
+			if ($otp['quantity'] > 0) {
+				$otp['stock'] = $this->language->get('text_instock').($this->config->get('config_otp_stock')?' ('.$otp['quantity'].')':'');
+			}
+			else {
+				$otp['stock'] = $out_of_stock;
+			}
+		}
+		$otp['out_of_stock'] = $out_of_stock;
+		if ($this->config->get('config_stock_checkout') == '1') {
+			$otp['out_of_stock'] = 0;
+		}
+		print json_encode($otp);
+	}
+}
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+$results = $this->model_catalog_product->getProductImages($this->request->get['product_id']);
+]]></search>
+<add trim="true"><![CDATA[
+$swap_images = $this->model_catalog_product->getSwapThumbs($this->request->get['product_id']);
+$results = array();
+$main_title = '';
+if (!empty($swap_images)) {
+	foreach ($swap_images as $key => $swap_element) {
+		if ($swap_element['image'] == $product_info['image']) {
+			unset($swap_images[$key]);
+			$main_title = $swap_element['name'];
+		}
+	}
+	$results = $swap_images;
+}
+$standard_images = $this->model_catalog_product->getProductImages($this->request->get['product_id']);
+if (!empty($standard_images)) {
+  foreach($standard_images as $item) {
+    $results[] = $item;
+  }
+}
+$this->data['images'][] = array(
+	'popup' => $this->model_tool_image->resize($product_info['image'], $this->config->get('config_image_popup_width'), $this->config->get('config_image_popup_height')),
+	'thumb' => $this->model_tool_image->resize($product_info['image'], $this->config->get('config_image_additional_width'), $this->config->get('config_image_additional_height')),
+	'otp_thumb' => $this->model_tool_image->resize($product_info['image'], $this->config->get('config_image_thumb_width'), $this->config->get('config_image_thumb_height')),
+	'title' => $product_info['name'].($main_title != ''?' :: '.$main_title:'')
+);
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+'thumb' => $this->model_tool_image->resize($result['image'], $this->config->get('config_image_additional_width'), $this->config->get('config_image_additional_height'))
+]]></search>
+<add trim="true"><![CDATA[
+'thumb' => $this->model_tool_image->resize($result['image'], $this->config->get('config_image_additional_width'), $this->config->get('config_image_additional_height')),
+'otp_thumb' => $this->model_tool_image->resize($result['image'], $this->config->get('config_image_thumb_width'), $this->config->get('config_image_thumb_height')),
+'title' => $product_info['name'].(isset($result['name'])?' :: '.$result['name']:'')
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+public function index() {
+]]></search>
+<add trim="true"><![CDATA[
+public function getswapimages() {
+	$product_id = $this->request->get['product_id'];
+	$option_value_id = $this->request->get['option_value_id'];
+	$heading_title = $this->request->get['heading_title'];
+	$this->load->model('catalog/product');
+	$this->load->model('tool/image');
+	$swap_images = $this->model_catalog_product->getSwapImages($product_id, $option_value_id);
+	if (!empty($swap_images)) {
+		$swap_popup = $this->model_tool_image->resize($swap_images[0]['image'], $this->config->get('config_image_popup_width'), $this->config->get('config_image_popup_height'));
+		$swap_thumb = $this->model_tool_image->resize($swap_images[0]['image'], $this->config->get('config_image_thumb_width'), $this->config->get('config_image_thumb_height'));
+		$swap_title = $heading_title .' :: '. $swap_images[0]['name'];
+		$main_image = '<a href="'.$swap_popup.'" title="'.$swap_title.'"><img src="'.$swap_thumb.'" title="'.$swap_title.'" alt="'.$swap_title.'" id="image" /></a>';
+		$additional_images = '';
+		$gallery_images = '';
+		foreach($swap_images as $key => $swap) {
+			$swap_popup = $this->model_tool_image->resize($swap['image'], $this->config->get('config_image_popup_width'), $this->config->get('config_image_popup_height'));
+			$swap_thumb = $this->model_tool_image->resize($swap['image'], $this->config->get('config_image_thumb_width'), $this->config->get('config_image_thumb_height'));
+			$swap_additional = $this->model_tool_image->resize($swap['image'], $this->config->get('config_image_additional_width'), $this->config->get('config_image_additional_height'));
+			$swap_title = $heading_title .' :: '. $swap['name'];
+			$additional_images .= '<a href="'.$swap_popup.'" thumb="'.$swap_thumb.'" title="'.$swap_title.'"><img src="'.$swap_additional.'" title="'.$swap_title.'" alt="'.$swap_title.'" /></a>';
+			$gallery_images .= '';
+		}
+		$swap_image_data['swap'] = $swap_images[0]['id'];
+		$swap_image_data['main'] = $main_image;
+		$swap_image_data['additional'] = $additional_images;
+		$swap_image_data['gallery'] = $gallery_images;
+	}
+	else {
+		$swap_image_data = '';
+	}
+	echo json_encode($swap_image_data);
+}
+public function index() {
+	$this->load->model('catalog/product');
+	$this->data['swapcheck'] = $this->model_catalog_product->checkSwap($this->request->get['product_id']);
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+$this->data['products'][] = array(
+]]></search>
+<add trim="true"><![CDATA[
+$otp_bullets = '';
+if ($this->config->get('config_otp_bullet')) {
+	$bullets = $this->model_catalog_product->getSwapBullets($result['product_id']);
+	if (!empty($bullets)) {
+		foreach($bullets as $bullet) {
+			if ($bullet['image'] != '' && $bullet['image'] != 'no_image.jpg') {
+				$otp_bullets .= '<a href="#" class="otp_bullet" title="'.$bullet['name'].'" thumb="'.$this->model_tool_image->resize($bullet['thumb'], $this->config->get('config_image_related_width'), $this->config->get('config_image_related_height')).'"><img src="'.$this->model_tool_image->resize($bullet['image'], $this->config->get('config_otp_bullet_width'), $this->config->get('config_otp_bullet_height')).'" title="'.$bullet['name'].'" alt="'.$bullet['name'].'" /></a>';
+			}
+		}
+	}
+}
+$this->data['products'][] = array(
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+$special,
+]]></search>
+<add trim="true"><![CDATA[
+$special,
+'starting_from' => ($result['starting_from']?$this->language->get('text_starting_from') . ' ' . $this->currency->format($this->tax->calculate($result['starting_from'], $result['tax_class_id'], $this->config->get('config_tax'))):''),
+'otp_bullets' => $otp_bullets,
+]]></add>
+</operation>
+</file>
+
+
+
+<file name="catalog/controller/checkout/cart.php">
+<operation>
+<search position="replace"><![CDATA[
+if (isset($this->request->post['option'])) {
+]]></search>
+<add trim="true"><![CDATA[
+$otp = 0;
+if (isset($this->request->post['otp'])) {
+	$otp = $this->request->post['otp'];
+}
+$swap = 0;
+if (isset($this->request->post['swap'])) {
+	$swap = $this->request->post['swap'];
+}
+if (isset($this->request->post['option'])) {
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+$this->cart->add($this->request->post['product_id'], $quantity, $option, $profile_id);
+]]></search>
+<add trim="true"><![CDATA[
+$this->cart->add($this->request->post['product_id'], $quantity, $option, $profile_id, $otp, $swap);
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+$product_options = $this->model_catalog_product->getProductOptions($this->request->post['product_id']);
+]]></search>
+<add trim="true"><![CDATA[
+$otp_options = $this->model_catalog_product->getOtpOptions($this->request->post['product_id']);
+if (!empty($otp_options)) {
+	foreach ($otp_options as $otp_option) {
+		if ($otp_option['required'] == 1 && empty($option[$otp_option['option_id']])) {
+			$json['error']['option'][$otp_option['option_id']] = sprintf($this->language->get('error_required'), $otp_option['name']);
+		}
+	}
+}
+$product_options = $this->model_catalog_product->getProductOptions($this->request->post['product_id']);
+]]></add>
+</operation>
+</file>
+
+<file name="system/library/cart.php">
+<operation>
+<search position="replace"><![CDATA[
+public function add($product_id, $qty = 1, $option, $profile_id = '') {
+]]></search>
+<add trim="true"><![CDATA[
+public function add($product_id, $qty = 1, $option, $profile_id = '', $otp_id = 0, $swap_id = 0) {
+]]></add>
+</operation>
+<operation>
+<search position="after" offset="1"><![CDATA[
+$key .= (int)$profile_id;
+]]></search>
+<add trim="true"><![CDATA[
+if ($otp_id) {
+	$key .= ':' . $otp_id;
+}
+if ($swap_id) {
+	$key .= ':' . $swap_id;
+}
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+$option_data = array();
+]]></search>
+<add trim="true"><![CDATA[
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+if ($product_query->num_rows) {
+]]></search>
+<add trim="true"><![CDATA[
+$option_data = array();
+$otp_data = array();
+if ($otp_id != 0) {
+	$otpcount = 0;
+	$otp_options = array();
+	$otp_check_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "otp_option_value WHERE `id` = '" . (int)$otp_id . "' LIMIT 1");
+	if ($otp_check_query->num_rows) {
+		$otp_options[] = $otp_check_query->row['parent_option_id'];
+		if ($otp_check_query->row['child_option_id'] != 0) {
+			$otp_options[] = $otp_check_query->row['child_option_id'];
+		}
+		if ($otp_check_query->row['grandchild_option_id'] != 0) {
+			$otp_options[] = $otp_check_query->row['grandchild_option_id'];
+		}
+		foreach ($options as $otp_option_id => $otp_option_value_id) {
+			if (in_array($otp_option_id, $otp_options)) {
+				$otpcount++;
+				$otp_option_query = $this->db->query("SELECT o.type, od.name FROM `" . DB_PREFIX . "option` o LEFT JOIN `" . DB_PREFIX . "option_description` od ON (o.option_id = od.option_id) WHERE o.option_id = '" . (int)$otp_option_id . "' AND od.language_id = '" . (int)$this->config->get('config_language_id') . "'");
+				if ($otpcount == 1) {
+					$otp_option_value_query = $this->db->query("SELECT otp.id, otp.parent_option_value_id, ovd.name, otpd.model, otpd.quantity, otpd.subtract, otpd.price_prefix, otpd.price, otpd.special, otpd.weight_prefix, otpd.weight FROM " . DB_PREFIX . "otp_option_value otp INNER JOIN " . DB_PREFIX . "otp_data otpd ON otp.id = otpd.otp_id LEFT JOIN " . DB_PREFIX . "option_value ov ON (otp.parent_option_value_id = ov.option_value_id) LEFT JOIN " . DB_PREFIX . "option_value_description ovd ON (ov.option_value_id = ovd.option_value_id) WHERE otp.id = '" . (int)$otp_id . "' AND ovd.language_id = '" . (int)$this->config->get('config_language_id') . "'");
+					if ($otp_option_value_query->row['subtract'] == 1 && (!$otp_option_value_query->row['quantity'] || ($otp_option_value_query->row['quantity'] < $quantity))) {
+						$stock = false;
+					}
+					$option_data[] = array(
+						'product_option_id'       => $otp_option_id,
+						'product_option_value_id' => $otp_option_value_id,
+						'option_id'               => $otp_option_id,
+						'option_value_id'         => $otp_option_value_id,
+						'name'                    => $otp_option_query->row['name'],
+						'option_value'            => $otp_option_value_query->row['name'],
+						'type'                    => $otp_option_query->row['type']
+					);
+					$otp_data['otp_id'] = $otp_option_value_query->row['id'];
+					$otp_data['model'] = $otp_option_value_query->row['model'];
+					$otp_data['price_prefix'] = $otp_option_value_query->row['price_prefix'];
+					$otp_data['price'] = $otp_option_value_query->row['price'];
+					$otp_data['special'] = $otp_option_value_query->row['special'];
+					$otp_data['weight_prefix'] = $otp_option_value_query->row['weight_prefix'];
+					$otp_data['weight'] = $otp_option_value_query->row['weight'];
+				}
+				elseif ($otpcount == 2) {
+					$otp_option_value_query = $this->db->query("SELECT otp.child_option_value_id, ovd.name, otpd.model, otpd.quantity, otpd.subtract, otpd.price_prefix, otpd.price, otpd.special FROM " . DB_PREFIX . "otp_option_value otp INNER JOIN " . DB_PREFIX . "otp_data otpd ON otp.id = otpd.otp_id LEFT JOIN " . DB_PREFIX . "option_value ov ON (otp.child_option_value_id = ov.option_value_id) LEFT JOIN " . DB_PREFIX . "option_value_description ovd ON (ov.option_value_id = ovd.option_value_id) WHERE otp.id = '" . (int)$otp_id . "' AND ovd.language_id = '" . (int)$this->config->get('config_language_id') . "'");
+					if ($otp_option_value_query->row['subtract'] && (!$otp_option_value_query->row['quantity'] || ($otp_option_value_query->row['quantity'] < $quantity))) {
+						$stock = false;
+					}
+					$option_data[] = array(
+						'product_option_id'       => $otp_option_id,
+						'product_option_value_id' => $otp_option_value_id,
+						'option_id'               => $otp_option_id,
+						'option_value_id'         => $otp_option_value_id,
+						'name'                    => $otp_option_query->row['name'],
+						'option_value'            => $otp_option_value_query->row['name'],
+						'type'                    => $otp_option_query->row['type']
+					);
+				}
+				elseif ($otpcount == 3 && $otp_option_query->num_rows) {
+					$otp_option_value_query = $this->db->query("SELECT otp.grandchild_option_value_id, ovd.name, otpd.model, otpd.quantity, otpd.subtract, otpd.price_prefix, otpd.price, otpd.special FROM " . DB_PREFIX . "otp_option_value otp INNER JOIN " . DB_PREFIX . "otp_data otpd ON otp.id = otpd.otp_id LEFT JOIN " . DB_PREFIX . "option_value ov ON (otp.grandchild_option_value_id = ov.option_value_id) LEFT JOIN " . DB_PREFIX . "option_value_description ovd ON (ov.option_value_id = ovd.option_value_id) WHERE otp.id = '" . (int)$otp_id . "' AND ovd.language_id = '" . (int)$this->config->get('config_language_id') . "'");
+					if ($otp_option_value_query->row['subtract'] && (!$otp_option_value_query->row['quantity'] || ($otp_option_value_query->row['quantity'] < $quantity))) {
+						$stock = false;
+					}
+					$option_data[] = array(
+						'product_option_id'       => $otp_option_id,
+						'product_option_value_id' => $otp_option_value_id,
+						'option_id'               => $otp_option_id,
+						'option_value_id'         => $otp_option_value_id,
+						'name'                    => $otp_option_query->row['name'],
+						'option_value'            => $otp_option_value_query->row['name'],
+						'type'                    => $otp_option_query->row['type']
+					);
+				}
+			}
+		}
+	}
+	else {
+		$this->remove($key);
+	}
+}
+if ($product_query->num_rows) {
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+$product_query->row['model'],
+]]></search>
+<add trim="true"><![CDATA[
+$final_model,
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+$product_query->row['image'],
+]]></search>
+<add trim="true"><![CDATA[
+$final_image,
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+($price + $option_price),
+]]></search>
+<add trim="true"><![CDATA[
+$final_price,
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+($price + $option_price) * $quantity,
+]]></search>
+<add trim="true"><![CDATA[
+$final_total,
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+($product_query->row['weight'] + $option_weight) * $quantity,
+]]></search>
+<add trim="true"><![CDATA[
+$final_weight,
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+$this->data[$key] = array(
+]]></search>
+<add trim="true"><![CDATA[
+if (empty($otp_data)) {
+	$otp_id = 0;
+	$final_model = $product_query->row['model'];
+	$final_price = $price + $option_price;
+	$final_total = ($price + $option_price) * $quantity;
+	$final_weight = ($product_query->row['weight'] + $option_weight) * $quantity;
+}
+else {
+	$otp_id = $otp_data['otp_id'];
+	if ($otp_data['model'] != '') {
+		$final_model = $otp_data['model'];
+	}
+	else {
+		$final_model = $product_query->row['model'];
+	}
+	if ($product_discount_query->num_rows) {
+		$final_price = $product_discount_query->row['price'] + $option_price;
+		$final_total = ($product_discount_query->row['price'] + $option_price) * $quantity;
+	}
+	else {
+		if ($this->config->get('config_otp_special') && $otp_data['special'] > 0) {
+			$final_price = $otp_data['special'] + $option_price;
+			$final_total = ($otp_data['special'] + $option_price) * $quantity;
+		}
+		elseif ($this->config->get('config_otp_price') && $otp_data['price'] > 0) {
+			if ($otp_data['price_prefix'] == "=") {
+				$final_price = $otp_data['price'] + $option_price;
+				$final_total = ($otp_data['price'] + $option_price) * $quantity;
+			}
+			elseif ($otp_data['price_prefix'] == "+") {
+				$final_price = $price + $otp_data['price'] + $option_price;
+				$final_total = ($price + $otp_data['price'] + $option_price) * $quantity;
+			}
+			else {
+				$final_price = $price - $otp_data['price'] + $option_price;
+				$final_total = ($price - $otp_data['price'] + $option_price) * $quantity;
+			}
+		}
+		else {
+			$final_price = $price + $option_price;
+			$final_total = ($price + $option_price) * $quantity;
+		}
+	}
+	if ($this->config->get('config_otp_weight') && $otp_data['weight'] > 0) {
+		if ($otp_data['weight_prefix'] == "=") {
+			$final_weight = ($otp_data['weight'] + $option_weight) * $quantity;
+		}
+		elseif ($otp_data['weight_prefix'] == "+") {
+			$final_weight = ($product_query->row['weight'] + $otp_data['weight'] + $option_weight) * $quantity;
+		}
+		else {
+			$final_weight = ($product_query->row['weight'] - $otp_data['weight'] + $option_weight) * $quantity;
+		}
+	}
+	else {
+		$final_weight = ($product_query->row['weight'] + $option_weight) * $quantity;
+	}
+}
+if (!isset($product[4]) || $product[4] == 0) {
+	$final_image = $product_query->row['image'];
+}
+else {
+	$swap_id = $product[4];
+	$otp_swap_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "otp_image WHERE `id` = '" . (int)$swap_id . "'");
+	if ($otp_swap_query->num_rows) {
+		$final_image = $otp_swap_query->row['image'];
+	}
+	else {
+		$final_image = $product_query->row['image'];
+	}
+}
+$this->data[$key] = array(
+	'otp_id' => $otp_id,
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+$product = explode(':', $key);
+]]></search>
+<add trim="true"><![CDATA[
+$product = explode(':', $key);
+if (isset($product[3]) && $product[3] != 0) {
+	$otp_id = $product[3];
+}
+else {
+	$otp_id = 0;
+}
+]]></add>
+</operation>
+</file>
+
+<file name="catalog/model/checkout/order.php">
+<operation>
+<search position="replace"><![CDATA[
+reward = '" . (int)$product['reward'] . "'
+]]></search>
+<add trim="true"><![CDATA[
+reward = '" . (int)$product['reward'] . "', otp_id = '" . (int)$product['otp_id'] . "'
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+foreach ($order_product_query->rows as $order_product) {
+]]></search>
+<add trim="true"><![CDATA[
+foreach ($order_product_query->rows as $order_product) {
+	$this->db->query("UPDATE " . DB_PREFIX . "otp_data SET quantity = (quantity - " . (int)(int)$order_product['quantity'] . ") WHERE otp_id = '" . (int)$order_product['otp_id'] . "' AND subtract = '1' LIMIT 1");
+]]></add>
+</operation>
+</file>
+
+<file name="catalog/controller/checkout/confirm.php">
+<operation>
+<search position="replace"><![CDATA[
+'product_id' => $product['product_id'],
+]]></search>
+<add trim="true"><![CDATA[
+'otp_id' => $product['otp_id'],
+'product_id' => $product['product_id'],
+]]></add>
+</operation>
+</file>
+
+
+<file path="catalog/controller/product/" name="category.php,manufacturer.php,search.php,special.php">
+<operation>
+<search position="replace"><![CDATA[
+$this->language->load
+]]></search>
+<add trim="true"><![CDATA[
+$this->language->load('product/product');
+$this->language->load
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+$this->data['products'][] = array(
+]]></search>
+<add trim="true"><![CDATA[
+$otp_bullets = '';
+if ($this->config->get('config_otp_bullet')) {
+	$bullets = $this->model_catalog_product->getSwapBullets($result['product_id']);
+	if (!empty($bullets)) {
+		foreach($bullets as $bullet) {
+			if ($bullet['image'] != '' && $bullet['image'] != 'no_image.jpg') {
+				$otp_bullets .= '<a href="#" class="otp_bullet" title="'.$bullet['name'].'" thumb="'.$this->model_tool_image->resize($bullet['thumb'], $this->config->get('config_image_product_width'), $this->config->get('config_image_product_height')).'"><img src="'.$this->model_tool_image->resize($bullet['image'], $this->config->get('config_otp_bullet_width'), $this->config->get('config_otp_bullet_height')).'" title="'.$bullet['name'].'" alt="'.$bullet['name'].'" /></a>';
+			}
+		}
+	}
+}
+$this->data['products'][] = array(
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+$price,
+]]></search>
+<add trim="true"><![CDATA[
+$price,
+'starting_from' => ($result['starting_from']?$this->language->get('text_starting_from') . ' ' . $this->currency->format($this->tax->calculate($result['starting_from'], $result['tax_class_id'], $this->config->get('config_tax'))):''),
+'otp_bullets' => $otp_bullets,
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+$this->currency->format((float)$result['special'] ? $result['special'] : $result['price']);
+]]></search>
+<add trim="true"><![CDATA[
+$this->currency->format($result['starting_from']?$result['starting_from']:((float)$result['special'] ? $result['special'] : $result['price']));
+]]></add>
+</operation>
+</file>
+
+
+<file name="catalog/controller/product/compare.php">
+<operation>
+<search position="replace"><![CDATA[
+$this->language->load
+]]></search>
+<add trim="true"><![CDATA[
+$this->language->load('product/product');
+$this->language->load
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+$price,
+]]></search>
+<add trim="true"><![CDATA[
+$price,
+'starting_from' => ($product_info['starting_from']?$this->language->get('text_starting_from') . ' ' . $this->currency->format($this->tax->calculate($product_info['starting_from'], $product_info['tax_class_id'], $this->config->get('config_tax'))):''),
+]]></add>
+</operation>
+</file>
+
+
+
+
+<file name="catalog/controller/module/featured.php">
+<operation>
+<search position="replace"><![CDATA[
+$this->language->load
+]]></search>
+<add trim="true"><![CDATA[
+$this->language->load('product/product');
+$this->language->load
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+$this->data['products'][] = array(
+]]></search>
+<add trim="true"><![CDATA[
+$otp_bullets = '';
+if ($this->config->get('config_otp_bullet')) {
+	$bullets = $this->model_catalog_product->getSwapBullets($product_info['product_id']);
+	if (!empty($bullets)) {
+		foreach($bullets as $bullet) {
+			if ($bullet['image'] != '' && $bullet['image'] != 'no_image.jpg') {
+				$otp_bullets .= '<a href="#" class="otp_bullet" title="'.$bullet['name'].'" thumb="'.$this->model_tool_image->resize($bullet['thumb'], $setting['image_width'], $setting['image_height']).'"><img src="'.$this->model_tool_image->resize($bullet['image'], $this->config->get('config_otp_bullet_width'), $this->config->get('config_otp_bullet_height')).'" title="'.$bullet['name'].'" alt="'.$bullet['name'].'" /></a>';
+			}
+		}
+	}
+}
+$this->data['products'][] = array(
+]]></add>
+</operation>
+<operation>
+<search position="replace"><![CDATA[
+$price,
+]]></search>
+<add trim="true"><![CDATA[
+$price,
+'starting_from' => ($product_info['starting_from']?$this->language->get('text_starting_from') . ' ' . $this->currency->format($this->tax->calculate($product_info['starting_from'], $product_info['tax_class_id'], $this->config->get('config_tax'))):''),
+'otp_bullets' => $otp_bullets,
+]]></add>
+</operation>
+</file>
+
+
+</modification>

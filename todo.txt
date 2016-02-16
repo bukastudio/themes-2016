@@ -1,0 +1,140 @@
+Remove Option to Product dan cari penggantinya
+Install tambahan extension yg sdh dibeli
+TODO: Testing add banner on Content Top → Category Page
+Testing add to cart
+Testing Share buttons on product page
+IDEA: Module banner khusus untuk mobile site
+TODO: Make a smaller bank icons
+
+.
+├── account
+│   ├── account.tpl
+│   ├── ## address_form.tpl → SimpleAddress
+│   ├── address_list.tpl
+│   ├── ## download.tpl → Disabled
+│   ├── ## edit.tpl → SimpleEdit
+│   ├── forgotten.tpl
+│   ├── login.tpl
+│   ├── newsletter.tpl
+│   ├── order_info.tpl
+│   ├── order_list.tpl
+│   ├── password.tpl
+│   ├── ## recurring_info.tpl → Not used
+│   ├── ## recurring_list.tpl → Not used
+│   ├── ## register.tpl → SimpleRegister
+│   ├── return_form.tpl
+│   ├── return_info.tpl
+│   ├── return_list.tpl
+│   ├── reward.tpl
+│   ├── simpleaddress.tpl
+│   ├── simpleedit.tpl
+│   ├── simpleregister.tpl
+│   ├── testimonial.tpl
+│   ├── transaction.tpl
+│   ├── voucher.tpl
+│   └── wishlist.tpl
+├── affiliate
+│   ├── account.tpl
+│   ├── edit.tpl
+│   ├── forgotten.tpl
+│   ├── login.tpl
+│   ├── password.tpl
+│   ├── payment.tpl
+│   ├── register.tpl
+│   ├── tracking.tpl
+│   └── transaction.tpl
+├── blog
+│   ├── all.tpl
+│   ├── blog.tpl
+│   ├── blog_category.tpl
+│   └── search.tpl
+├── checkout
+│   ├── ## cart.tpl → Not used
+│   ├── ## checkout.tpl → Not used
+│   ├── ## confirm.tpl → Not used
+│   ├── ## guest.tpl → Not used
+│   ├── ## guest_shipping.tpl → Not used
+│   ├── ## login.tpl → Not used
+│   ├── ## payment_address.tpl → Not used
+│   ├── ## payment_method.tpl → Not used
+│   ├── ## register.tpl → Not used
+│   ├── ## shipping_address.tpl → Not used
+│   ├── ## shipping_method.tpl → Not used
+│   ├── simplecheckout.tpl
+│   ├── simplecheckout_cart.tpl
+│   ├── simplecheckout_cart_empty.tpl
+│   ├── simplecheckout_customer.tpl
+│   ├── simplecheckout_login.tpl
+│   ├── simplecheckout_payment.tpl
+│   └── simplecheckout_shipping.tpl
+├── common
+│   ├── column_left.tpl
+│   ├── column_right.tpl
+│   ├── content_bottom.tpl
+│   ├── content_top.tpl
+│   ├── footer.tpl
+│   ├── header.tpl
+│   ├── home.tpl
+│   ├── maintenance.tpl
+│   ├── simple_footer.tpl
+│   ├── simple_header.tpl
+│   ├── simple_static.tpl
+│   └── success.tpl
+├── error
+│   └── not_found.tpl
+├── information
+│   ├── contact.tpl
+│   ├── information.tpl
+│   ├── payment_confirmation.tpl
+│   ├── ## sitemap.tpl → Not used
+│   ├── testimonial.tpl
+│   └── ## warning.tpl → Not used
+├── mail
+│   ├── order.tpl
+│   └── voucher.tpl
+├── module
+│   ├── account.tpl
+│   ├── affiliate.tpl
+│   ├── banner.tpl
+│   ├── bestseller.tpl
+│   ├── blog_category.tpl
+│   ├── carousel.tpl
+│   ├── cart.tpl
+│   ├── category.tpl
+│   ├── currency.tpl
+│   ├── ## ebaydisplay.tpl → Not used
+│   ├── featured.tpl
+│   ├── ## filter.tpl → Not used
+│   ├── filterpro.tpl
+│   ├── filterpro_container.tpl
+│   ├── filterpro_products.tpl
+│   ├── ## google_talk.tpl → Not used
+│   ├── information.tpl
+│   ├── language.tpl
+│   ├── latest.tpl
+│   ├── latest_blog.tpl
+│   ├── mailchimp_integration.tpl
+│   ├── ## out-of-stock-enquiry.tpl → Not used
+│   ├── po_testimonials.tpl
+│   ├── ## pp_layout.tpl → Not used
+│   ├── random.tpl
+│   ├── slideshow.tpl
+│   ├── ## smsznotification.tpl → Di admin
+│   ├── special.tpl
+│   ├── ## store.tpl → Not used
+│   └── welcome.tpl
+
+├── ## pos → Gak perlu disetting
+│   ├── ## pay.tpl → Gak perlu disetting
+│   └── ## success.tpl → Gak perlu disetting
+└── product
+    ├── category.tpl
+    ├── compare.tpl
+    ├── filter.tpl
+    ├── manufacturer_info.tpl
+    ├── manufacturer_list.tpl
+    ├── new_arrivals.tpl
+    ├── product.tpl
+    ├── review.tpl
+    ├── search.tpl
+    └── special.tpl

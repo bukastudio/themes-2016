@@ -1,0 +1,27 @@
+<modification>
+  <id>Countdown Timer</id>
+  <version>1.0</version>
+  <vqmver>2.1.5</vqmver>
+  <author>Bukatoko.com</author>
+
+  <file name="catalog/view/theme/default/template/module/special.tpl">
+    <operation>
+      <search position="after" trim="true"><![CDATA[
+        <div class="discount">
+      ]]></search>
+      <add><![CDATA[
+        <?php if ($product['special_end'] && $this->config->get('countdowntimer_category')) { ?>
+          <div class="countdown">
+            <?php echo $text_countdown; ?> <div id="countdown<?php echo $product['product_id']?>"></div>
+          </div>
+          <script>
+          setInterval(function(){ countdown("<?php echo $product['special_end'];  ?>", <?php echo $product['product_id']?>); }, 50);
+          </script>
+        <?php } ?>
+      ]]></add>
+    </operation>
+
+  </file>
+
+
+</modification>

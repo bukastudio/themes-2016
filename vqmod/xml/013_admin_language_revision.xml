@@ -1,0 +1,35 @@
+<modification>
+  <id>Admin Language Revision</id>
+  <version>1.0</version>
+  <vqmver>2.1.5</vqmver>
+  <author>Bukatoko.com</author>
+
+  <file name="admin/language/english/english.php">
+    <operation>
+      <search position="replace"><![CDATA[
+        $_['tab_discount']                  = 'Discount';
+      ]]></search>
+      <add><![CDATA[
+        $_['tab_discount']                  = 'Wholesale';
+      ]]></add>
+    </operation>
+    <operation>
+      <search position="replace"><![CDATA[
+        $_['tab_special']                   = 'Special';
+      ]]></search>
+      <add><![CDATA[
+        $_['tab_special']                   = 'Discount';
+      ]]></add>
+    </operation>
+    <operation>
+      <search position="replace" offset="1"><![CDATA[
+        $_['button_add_discount']           = 'Add Discount';
+      ]]></search>
+      <add><![CDATA[
+        $_['button_add_discount']           = 'Add Wholesale';
+        $_['button_add_special']            = 'Add Discount';
+      ]]></add>
+    </operation>
+  </file>
+
+</modification>
